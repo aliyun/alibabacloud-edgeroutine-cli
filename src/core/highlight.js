@@ -9,6 +9,7 @@
 
 const Engine = require("highlight.js");
 const Parser = require("parse5");
+const ParserTreeAdapter = require("parse5-htmlparser2-tree-adapter");
 const Chalk = require("chalk");
 
 function plain(x) {
@@ -91,7 +92,7 @@ function colorizeInTerminal(buffer, node, apply) {
 function highlight(code, lang = "javascript") {
   const html = Engine.highlight(lang, code, true).value;
   const frg = Parser.parseFragment(html, {
-    treeAdapter: Parser.treeAdapters.htmlparser2
+      treeAdapter: ParserTreeAdapter
   });
   const buf = [];
   frg.childNodes.map((node) => { colorizeInTerminal(buf, node); });
