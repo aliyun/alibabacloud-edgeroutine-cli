@@ -1,6 +1,6 @@
 {
   "name": "@alicloud/edgeroutine-cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "@alicloud/edgeroutine-cli",
   "bin": {
     "edgeroutine-cli": "./bin/index.js"
@@ -20,6 +20,7 @@
     "mocha": "^7.0.1",
     "open": "^7.0.2",
     "parse5": "^5.1.1",
+    "parse5-htmlparser2-tree-adapter": "^5.1.1",
     "request": "^2.88.2",
     "request-promise": "^4.2.5",
     "shelljs": "^0.8.3",
