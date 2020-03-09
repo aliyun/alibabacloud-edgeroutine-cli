@@ -1,6 +1,5 @@
 const program = require('commander');
-
-const build = require('../src/commands/build');
+const build = require('../src/commands/build')
 const config = require('../src/commands/config');
 const init = require('../src/commands/init');
 const publish = require('../src/commands/publish');

@@ -46,7 +46,7 @@ async function setConfigJS(configPath) {
     await inquirer.prompt(prompts);
 }
 
-function initConfigJS() {
+function initConfigJS(dirName) {
     figlet('edgeroutine-cli', async function(err, data) {
         if (err) {
             console.log(chalk.red('Some thing about figlet is wrong!'));
@@ -54,7 +54,14 @@ function initConfigJS() {
         console.log(chalk.yellow(data));
         let templatePath = path.join(__dirname, '../templates/config/config.js');
         let configStr = fs.readFileSync(templatePath, 'utf8');
-        let targetFilePath = path.resolve('config.js');
+        if(dirName){
+            if(!fs.existsSync(path.resolve(dirName))){
+                fs.mkdirSync(path.resolve(dirName))
+            }
+        }else{
+            dirName = ''
+        }
+        let targetFilePath = path.resolve(dirName,'config.js');
         fs.writeFileSync(targetFilePath, configStr, 'utf8');
         console.log(chalk.red('\n Created default config.js, waiting init... \n'));
         await setConfigJS(targetFilePath);
@@ -63,7 +70,7 @@ function initConfigJS() {
     });
 }
 
-module.exports = function() {
+module.exports = function(dirName) {
     // 配置文件如果存在则提示是否覆盖
     if (fs.existsSync(path.resolve('config.js'))) {
         // 连续提问
@@ -91,6 +98,6 @@ module.exports = function() {
                 console.log(chalk.red(err));
             })
     } else {
-        initConfigJS();
+        initConfigJS(dirName);
     }
 };

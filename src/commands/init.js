@@ -7,7 +7,7 @@ const inquirer = require('inquirer');
 // NOTES(dpeng): I add this for highlighting JavaScript syntax inside of terminal
 const hi = require("../core/highlight.js")
 
-function initEdgeJS() {
+function initEdgeJS(dirName) {
     figlet('edgeroutine-cli', async function(err, data) {
         if (err) {
             console.log(chalk.red('Some thing about figlet is wrong!'));
@@ -15,7 +15,14 @@ function initEdgeJS() {
         console.log(chalk.yellow(data));
         let templatePath = path.join(__dirname, '../templates/js/edge.js');
         let templateStr = fs.readFileSync(templatePath, 'utf8');
-        let targetFilePath = path.resolve('edge.js');
+        if(dirName){
+            if(!fs.existsSync(path.resolve(dirName))){
+                fs.mkdirSync(path.resolve(dirName))
+            }
+        }else{
+            dirName = ''
+        }
+        let targetFilePath = path.resolve(dirName,'edge.js');
         fs.writeFileSync(targetFilePath, templateStr, 'utf8');
         console.log(chalk.red('\nCoding...\n'));
         console.log(chalk.red('Initialize edge.js success... \n'));
@@ -25,7 +32,7 @@ function initEdgeJS() {
     });
 }
 
-module.exports = function() {
+module.exports = function(dirName) {
     // 代码文件如果存在则提示是否覆盖
     if (fs.existsSync(path.resolve('edge.js'))) {
         // 连续提问
@@ -53,6 +60,6 @@ module.exports = function() {
                 console.log(chalk.red(err));
             })
     } else {
-        initEdgeJS();
+        initEdgeJS(dirName);
     }
 };
