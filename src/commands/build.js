@@ -79,88 +79,87 @@ function getConfigAndClient(){
         console.log(chalk.red('Build without config.js, run `edgeroutine-cli config`...'));
         process.exit(1);
     }
-
     const client = new popCore({
         accessKeyId: config.accessKeyID,
         accessKeySecret: config.accessKeySecret,
         endpoint: config.endpoint,
         apiVersion: config.apiVersion,
     });
-
-    return {config,client};
-}
-
-function clientCustom(urlStr,params,requestOption){
-    let {client} = getConfigAndClient();
-    return new Promise((resolve,rejcet)=>{
-        client.request(urlStr, params, requestOption).then((result) => {
-            let domainConfig = result.DomainConfigs;
-            for (var d in domainConfig) {
-                let config = domainConfig[d];
-                if (config.FunctionName == "edge_function") {
-                    resolve(config)
-                }
-            }
-        }, (ex) => {
-            console.log(ex);
-        })
-    })
-}
-
-function build(program) {
-    let {config,client} = getConfigAndClient();
-    var params = {
+    let params = {
         'RegionId': 'cn-hangzhou',
         'DomainName': config.domain,
     }
     const requestOption = {
         method: 'GET'
     };
-    if (program.show == true) {
-        params["FunctionNames"] = 'edge_function';
-        clientCustom('DescribeCdnDomainStagingConfig',params,requestOption).then((config)=>{
-            let functionArg = config.FunctionArgs;
-            let functionDict = {};
-            for (var f in functionArg) {
-                let funcArg = functionArg[f];
-                functionDict[funcArg["ArgName"]] = funcArg["ArgValue"];
-            }
-            console.log('');
-            console.log('[Show Configs]');
-            console.log('  ');
-            console.log(chalk.green('pos:    ' + '"' + functionDict["pos"] + '"'));
-            console.log(chalk.green('jsmode: ' + '"' + functionDict["jsmode"] + '"'));
-            console.log('');
-            console.log('[Show Codes]');
-            console.log('  ');
-            console.log(chalk.green(base64.decode(functionDict['rule'])));
-            return 0;
-        }) 
-    } else if (program.delete == true) {
-        params["FunctionNames"] = 'edge_function';
-        clientCustom('DescribeCdnDomainStagingConfig', params,requestOption).then((config) => {
-          params["ConfigId"] = config.ConfigId;
-          client.request('DeleteSpecificStagingConfig', params, requestOption).then((result) => {
-            if (result.RequestId) {
-                console.log(chalk.green("Build deleted..."));
-            }
-            }, (ex) => {
-                console.log(ex);
-            }) 
-        });
-    } else if (program.rollback == true) {
-        params["FunctionNames"] = 'edge_function';
-       clientCustom('DescribeCdnDomainStagingConfig', params,requestOption).then((config) => {
-            params["FunctionName"] = 'edge_function';
-            params["ConfigId"] = config.ConfigId;
-            client.request('RollbackStagingConfig', params, requestOption).then((result) => {
-                if (result.RequestId) {
-                    console.log(chalk.green("Build rollbacked..."));
+    return {config,client,params,requestOption};
+}
+
+function clientCustom(stats){ 
+    let {client,params,requestOption} = getConfigAndClient();
+    params["FunctionNames"] = 'edge_function';
+    client.request('DescribeCdnDomainStagingConfig', params, requestOption).then((result) => {
+        let domainConfig = result.DomainConfigs;
+        for (var d in domainConfig) {
+            let config = domainConfig[d];
+            if (config.FunctionName == "edge_function") {
+                if(stats == 'show'){
+                    show(config)
+                }else if(stats == 'delete'){
+                    params["ConfigId"] = config.ConfigId;
+                    requestDeleteOrollback('DeleteSpecificStagingConfig',params,requestOption,'Deleted')
+                }else if(stats == 'rollback'){
+                    params["FunctionName"] = 'edge_function';
+                    params["ConfigId"] = config.ConfigId;
+                    requestDeleteOrollback('RollbackStagingConfig',params,requestOption,'Rollbacked')
                 }
-            }, (ex) => {
-                console.log(ex);
-            })
-        });
+            }
+        }
+    }, (ex) => {
+        console.log(ex);
+    })
+}
+
+// Build Show
+function show(config){
+    let functionArg = config.FunctionArgs;
+    let functionDict = {};
+    for (var f in functionArg) {
+        let funcArg = functionArg[f];
+        functionDict[funcArg["ArgName"]] = funcArg["ArgValue"];
+    }
+    console.log('');
+    console.log('[Show Configs]');
+    console.log('  ');
+    console.log(chalk.green('pos:    ' + '"' + functionDict["pos"] + '"'));
+    console.log(chalk.green('jsmode: ' + '"' + functionDict["jsmode"] + '"'));
+    console.log('');
+    console.log('[Show Codes]');
+    console.log('  ');
+    console.log(chalk.green(base64.decode(functionDict['rule'])));
+    return 0;
+}
+
+// Build Delete or Rollback
+function requestDeleteOrollback(url,params,requestOption,stats){
+    let { client }  = getConfigAndClient()
+    client.request(url,params,requestOption).then((result)=>{
+        if (result.RequestId) {
+            console.log(chalk.green(`Build ${stats}...`));
+        }
+    },(ex)=>{
+        console.log(ex);
+    })
+}
+
+function build(program) {
+    let {config,client,params,requestOption} = getConfigAndClient();
+    if (program.show == true) {
+        clientCustom('show')
+    } else if (program.delete == true) {
+        clientCustom('delete')
+    } else if (program.rollback == true) {
+        clientCustom('rollback')
     } else {
         let edgejsFile = path.resolve(config.jsConfig.path);
         let stats = fs.statSync(edgejsFile);
