@@ -8,10 +8,99 @@ const rp = require('request-promise');
 const base64 = require('js-base64').Base64;
 const popCore = require('@alicloud/pop-core');
 const edgeCDN = require('../edge/edgecdn.js');
+const assert = require('assert');
+// get config and client 
+function getConfigAndClient() {
+    let config = {};
+    if (fs.existsSync(path.resolve('config.js'))) {
+        config = require(path.resolve('config.js'));
+    } else {
+        console.log(chalk.red('Build without config.js, run `edgeroutine-cli config`...'));
+        process.exit(1);
+    }
+    const client = new popCore({
+        accessKeyId: config.accessKeyID,
+        accessKeySecret: config.accessKeySecret,
+        endpoint: config.endpoint,
+        apiVersion: config.apiVersion,
+    });
+    let params = {
+        'RegionId': 'cn-hangzhou',
+        'DomainName': config.domain,
+    };
+    const requestOption = {
+        method: 'GET'
+    };
+    return { config, client, params, requestOption };
+}
 
-function buildRules(config, client, params, requestOption, edgejsCode, ossjsCode) {
+// client request 
+function clientCustom(stats) {
+    let { client, params, requestOption } = getConfigAndClient();
+    params["FunctionNames"] = 'edge_function';
+    client.request('DescribeCdnDomainStagingConfig', params, requestOption).then((result) => {
+        let domainConfig = result.DomainConfigs;
+        for (var d in domainConfig) {
+            let config = domainConfig[d];
+            if (config.FunctionName == "edge_function") {
+                if (stats == 'show') {
+                    show(config)
+                } else if (stats == 'delete') {
+                    params["ConfigId"] = config.ConfigId;
+                    requestClient('DeleteSpecificStagingConfig', params, requestOption, 'Deleted')
+                } else if (stats == 'rollback') {
+                    params["FunctionName"] = 'edge_function';
+                    params["ConfigId"] = config.ConfigId;
+                    requestClient('RollbackStagingConfig', params, requestOption, 'Rollbacked')
+                }
+            }
+        }
+        status == 'show' && console.log(chalk.red('Build not exists...'));
+    }, (ex) => {
+        console.log(ex);
+    })
+}
+
+// Build Show console.log
+function show(config) {
+    let functionArg = config.FunctionArgs;
+    let functionDict = {};
+    for (var f in functionArg) {
+        let funcArg = functionArg[f];
+        functionDict[funcArg["ArgName"]] = funcArg["ArgValue"];
+    }
+    console.log('');
+    console.log('[Show Configs]');
+    console.log('  ');
+    console.log(chalk.green('pos:    ' + '"' + functionDict["pos"] + '"'));
+    console.log(chalk.green('jsmode: ' + '"' + functionDict["jsmode"] + '"'));
+    console.log('');
+    console.log('[Show Codes]');
+    console.log('  ');
+    console.log(chalk.green(base64.decode(functionDict['rule'])));
+    return 0;
+}
+
+// Build  Success or Delete or Rollback
+function requestClient(url, params, requestOption, stats) {
+    let { client } = getConfigAndClient()
+    client.request(url, params, requestOption).then((result) => {
+        if (result.RequestId) {
+            console.log(chalk.green(`Build ${stats}...`));
+        }
+    }, (ex) => {
+        console.log(ex);
+        stats == "Succeed" && console.log(chalk.red("Build failed, check exists or connect us..."));
+    });
+}
+
+// get build rules 
+function buildRules(config, params, edgejsCode, ossjsCode) {
+    assert(config, 'must pass "config"');
+    assert(params, 'must pass "params"');
+    assert(edgejsCode, 'must pass "edgejsCode"');
     // options: jsConfig + jsSession
-    let options = ""
+    let options = "";
     // jsSession
     let jsSession = config.jsSession;
     if (jsSession && jsSession.length > 0) {
@@ -59,124 +148,31 @@ function buildRules(config, client, params, requestOption, edgejsCode, ossjsCode
         "functionName": "edge_function"
     }];
     params["Functions"] = JSON.stringify(functions);
-
-    client.request('SetCdnDomainStagingConfig', params, requestOption).then((result) => {
-        if (result.RequestId) {
-            console.log(chalk.green('Build succeed...'));
-        }
-    }, (ex) => {
-        console.log(ex);
-        console.log(chalk.red("Build failed, check exists or connect us..."))
-    });
+    return params
 }
 
+// program build   
 function build(program) {
-    let config = {};
-    if (fs.existsSync(path.resolve('config.js'))) {
-        config = require(path.resolve('config.js'));
-    } else {
-        console.log(chalk.red('Build without config.js, run `edgeroutine-cli config`...'));
-        process.exit(1);
-    }
-
-    const client = new popCore({
-        accessKeyId: config.accessKeyID,
-        accessKeySecret: config.accessKeySecret,
-        endpoint: config.endpoint,
-        apiVersion: config.apiVersion,
-    });
-
-    const requestOption = {
-        method: 'GET'
-    };
-
-    var params = {
-        'RegionId': 'cn-hangzhou',
-        'DomainName': config.domain,
-    }
-
+    let { config, client, params, requestOption } = getConfigAndClient();
     if (program.show == true) {
-        params["FunctionNames"] = 'edge_function';
-        client.request('DescribeCdnDomainStagingConfig', params, requestOption).then((result) => {
-            let domainConfig = result.DomainConfigs;
-            for (var d in domainConfig) {
-                let config = domainConfig[d];
-                if (config.FunctionName == "edge_function") {
-                    let functionArg = config.FunctionArgs;
-                    let functionDict = {};
-                    for (var f in functionArg) {
-                        let funcArg = functionArg[f];
-                        functionDict[funcArg["ArgName"]] = funcArg["ArgValue"];
-                    }
-                    console.log('');
-                    console.log('[Show Configs]');
-                    console.log('  ');
-                    console.log(chalk.green('pos:    ' + '"' + functionDict["pos"] + '"'));
-                    console.log(chalk.green('jsmode: ' + '"' + functionDict["jsmode"] + '"'));
-                    console.log('');
-                    console.log('[Show Codes]');
-                    console.log('  ');
-                    console.log(chalk.green(base64.decode(functionDict['rule'])));
-                    return 0;
-                }
-            }
-            console.log(chalk.red('Build not exists...'));
-        }, (ex) => {
-            console.log(ex);
-        })
-        return 0;
+        clientCustom('show');
     } else if (program.delete == true) {
-        params["FunctionNames"] = 'edge_function';
-        client.request('DescribeCdnDomainStagingConfig', params, requestOption).then((result) => {
-            let domainConfig = result.DomainConfigs;
-            for (var d in domainConfig) {
-                let config = domainConfig[d];
-                if (config.FunctionName == "edge_function") {
-                    params["ConfigId"] = config.ConfigId;
-                    client.request('DeleteSpecificStagingConfig', params, requestOption).then((result) => {
-                        if (result.RequestId) {
-                            console.log(chalk.green("Build deleted..."));
-                        }
-                    }, (ex) => {
-                        console.log(ex);
-                    })
-                }
-            }
-        }, (ex) => {
-            console.log(ex);
-        });
+        clientCustom('delete');
     } else if (program.rollback == true) {
-        params["FunctionNames"] = 'edge_function';
-        client.request('DescribeCdnDomainStagingConfig', params, requestOption).then((result) => {
-            let domainConfig = result.DomainConfigs;
-            for (var d in domainConfig) {
-                let config = domainConfig[d];
-                if (config.FunctionName == "edge_function") {
-                    params["FunctionName"] = 'edge_function';
-                    params["ConfigId"] = config.ConfigId;
-                    client.request('RollbackStagingConfig', params, requestOption).then((result) => {
-                        if (result.RequestId) {
-                            console.log(chalk.green("Build rollbacked..."));
-                        }
-                    }, (ex) => {
-                        console.log(ex);
-                    })
-                }
-            }
-        }, (ex) => {
-            console.log(ex);
-        });
+        clientCustom('rollback');
     } else {
         let edgejsFile = path.resolve(config.jsConfig.path);
         let stats = fs.statSync(edgejsFile);
         let fileStr = fs.readFileSync(edgejsFile, {
             encoding: 'binary'
         });
-        let buf = new Buffer(fileStr, 'binary');
+        // let buf = new Buffer(fileStr, 'binary');
+        let buf = Buffer.from(fileStr, 'binary');
         let edgejsCode = iconv.decode(buf, 'utf8');
         let ossjsCode = undefined;
         // edge.js > 4K will be put to oss
         if (stats["size"] > 4096) {
+            // 初始化edgeCDN
             const cdnClinet = new edgeCDN({
                 accessKeyId: config.accessKeyID,
                 accessKeySecret: config.accessKeySecret,
@@ -194,24 +190,25 @@ function build(program) {
                 body: edgejsCode,
                 resolveWithFullResponse: true,
             };
-            rp(rpOptions)
-                .then(function(response, body) {
-                    if (response.statusCode == 200) {
-                        ossjsCode = ossObjectName;
-                        buildRules(config, client, params, requestOption, edgejsCode, ossjsCode);
-                    } else {
-                        console.log("upload edgejs failed with response %d", response.statusCode);
-                        return;
-                    }
-                }).catch(function(err) {
-                    // Crawling failed...
-                    console.log(`upload edgejs failed with err: ${err}`);
+            rp(rpOptions).then(function (response, body) {
+                if (response.statusCode == 200) {
+                    ossjsCode = ossObjectName;
+                    let params_result = buildRules(config, params, edgejsCode, ossjsCode);
+                    requestClient('SetCdnDomainStagingConfig', params_result, requestOption, 'Succeed');
+                } else {
+                    console.log("upload edgejs failed with response %d", response.statusCode);
                     return;
-                });
+                }
+            }).catch(function (err) {
+                // Crawling failed...
+                console.log(`upload edgejs failed with err: ${err}`);
+                return;
+            });
         } else {
-            buildRules(config, client, params, requestOption, edgejsCode, ossjsCode);
+            let params_result = buildRules(config, params, edgejsCode, ossjsCode);
+            requestClient('SetCdnDomainStagingConfig', params_result, requestOption, 'Succeed');
         }
     }
 }
 
-module.exports = build;
+module.exports = { build, buildRules }

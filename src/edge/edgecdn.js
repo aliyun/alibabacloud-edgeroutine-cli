@@ -3,7 +3,7 @@
 const base64 = require('js-base64').Base64;
 const crypto = require('crypto');
 const dateFormat = require('dateformat');
-
+const assert = require('assert');
 let EdgeCDN = class {
     /**
      * Use RAM credentials to construct a temporary client
@@ -12,6 +12,11 @@ let EdgeCDN = class {
      * @param {string} config.endpoint e.g. 'oss-cn-beijing.aliyuncs.com'
      */
     constructor(config) {
+        assert(config, "must pass 'config'");
+        assert(config.accessKeyId, "must pass 'config.accessKeyId");
+        assert(config.accessKeySecret, "must pass 'config.accessKeySecret");
+        assert(config.endpoint, "must pass 'config.endpoint");
+        assert(config.domainName, "must pass 'config.domainName");
         this.accessKeyId = config.accessKeyId;
         this.accessKeySecret = config.accessKeySecret;
         this.endpoint = config.endpoint;
@@ -28,6 +33,7 @@ let EdgeCDN = class {
     }
 
     _flatParams(params) {
+        assert(params, 'must pass "params"');
         var target = {};
         var keys = Object.keys(params);
         for (let i = 0; i < keys.length; i++) {
@@ -125,10 +131,10 @@ let EdgeCDN = class {
     /**
      * DescribeCdnService
      */
-    DescribeCdnService() {
+    DescribeCdnService(opts) {
         return this._createRequest('DescribeCdnService', {
             'DomainName': this.domainName
-        });
+        }, opts);
     }
 }
 
