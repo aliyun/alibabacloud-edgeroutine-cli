@@ -47,7 +47,6 @@ function clientCustom(status) {
                 }
             }
         }
-        status == 'show' && console.log(chalk.red('Publish not exists...'));
     }, (ex) => {
         console.log(ex);
     });
@@ -74,16 +73,16 @@ function show(config) {
     return 0;
 }
 
-//
-function requestClient(url, params, requestOption, stats) {
+
+function requestClient(url, params, requestOption, status) {
     let { client } = getConfigAndClient()
     client.request(url, params, requestOption).then((result) => {
         if (result.RequestId) {
-            console.log(chalk.green(`Build ${stats}...`));
+            console.log(chalk.green(`Publish ${status}...`));
         }
     }, (ex) => {
-        stats == 'Deleted' && console.log(chalk.red('Publish delete need build rollback first'));
-        stats == "Publish" && (() => {
+        status == 'Deleted' && console.log(chalk.red('Publish delete need build rollback first'));
+        status == "Succeed" && (() => {
             console.log(ex);
             console.log(chalk.red('Publish need build first or wait build success...'));
         })();
@@ -92,7 +91,7 @@ function requestClient(url, params, requestOption, stats) {
 
 
 function publish(program) {
-    let { config, params, requestOption } = getConfigAndClient()
+    let { config, params, requestOption } = getConfigAndClient();
     if (program.show == true) {
         clientCustom('show');
     } else if (program.delete == true) {
@@ -100,7 +99,7 @@ function publish(program) {
     } else {
         params["DomainName"] = config.domain;
         params["FunctionName"] = "edge_function";
-        requestClient('PublishStagingConfigToProduction', params, requestOption, 'Publish');
+        requestClient('PublishStagingConfigToProduction', params, requestOption, 'Succeed');
     }
 }
 

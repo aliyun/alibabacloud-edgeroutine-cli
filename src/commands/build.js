@@ -35,7 +35,7 @@ function getConfigAndClient() {
 }
 
 // client request 
-function clientCustom(stats) {
+function clientCustom(status) {
     let { client, params, requestOption } = getConfigAndClient();
     params["FunctionNames"] = 'edge_function';
     client.request('DescribeCdnDomainStagingConfig', params, requestOption).then((result) => {
@@ -43,19 +43,18 @@ function clientCustom(stats) {
         for (var d in domainConfig) {
             let config = domainConfig[d];
             if (config.FunctionName == "edge_function") {
-                if (stats == 'show') {
+                if (status == 'show') {
                     show(config)
-                } else if (stats == 'delete') {
+                } else if (status == 'delete') {
                     params["ConfigId"] = config.ConfigId;
                     requestClient('DeleteSpecificStagingConfig', params, requestOption, 'Deleted')
-                } else if (stats == 'rollback') {
+                } else if (status == 'rollback') {
                     params["FunctionName"] = 'edge_function';
                     params["ConfigId"] = config.ConfigId;
                     requestClient('RollbackStagingConfig', params, requestOption, 'Rollbacked')
                 }
             }
         }
-        status == 'show' && console.log(chalk.red('Build not exists...'));
     }, (ex) => {
         console.log(ex);
     })
@@ -82,15 +81,15 @@ function show(config) {
 }
 
 // Build  Success or Delete or Rollback
-function requestClient(url, params, requestOption, stats) {
+function requestClient(url, params, requestOption, status) {
     let { client } = getConfigAndClient()
     client.request(url, params, requestOption).then((result) => {
         if (result.RequestId) {
-            console.log(chalk.green(`Build ${stats}...`));
+            console.log(chalk.green(`Build ${status}...`));
         }
     }, (ex) => {
         console.log(ex);
-        stats == "Succeed" && console.log(chalk.red("Build failed, check exists or connect us..."));
+        status == "Succeed" && console.log(chalk.red("Build failed, check exists or connect us..."));
     });
 }
 
