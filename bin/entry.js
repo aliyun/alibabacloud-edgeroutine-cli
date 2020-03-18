@@ -1,6 +1,5 @@
 const program = require('commander');
-
-const build = require('../src/commands/build');
+const { build } = require('../src/commands/build');
 const config = require('../src/commands/config');
 const init = require('../src/commands/init');
 const publish = require('../src/commands/publish');
@@ -11,7 +10,7 @@ const debuggerIp = "debugger.ialicdn.com";
 
 program
     .version('0.1.1', '-v, --version')
-    .on('--help', function() {
+    .on('--help', function () {
         console.log('');
         console.log('Examples:');
         console.log('  0. mkdir yourProject & cd yourProject    Prepare an empty directory');
@@ -54,7 +53,7 @@ program
     .option('-p, --path', 'specify debugged script path', undefined, undefined)
     .option('-o, --origin', 'specify debugged script origin', undefined, undefined)
     .description("launch edgeroutine interactive debugger")
-    .action(function(url, id, path, origin, opt) {
+    .action(function (url, id, path, origin, opt) {
         dbg({
             url: url || debuggerIp,
             uid: id || "debug",
