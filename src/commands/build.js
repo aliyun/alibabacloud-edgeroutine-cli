@@ -1,9 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
-const uuidv1 = require('uuid/v1');
 const iconv = require('iconv-lite');
-const request = require('request');
 const rp = require('request-promise');
 const base64 = require('js-base64').Base64;
 const popCore = require('@alicloud/pop-core');
@@ -82,7 +80,7 @@ function show(config) {
 
 // Build  Success or Delete or Rollback
 function requestClient(url, params, requestOption, status) {
-    let { client } = getConfigAndClient()
+    let { client } = getConfigAndClient();
     client.request(url, params, requestOption).then((result) => {
         if (result.RequestId) {
             console.log(chalk.green(`Build ${status}...`));
@@ -147,12 +145,13 @@ function buildRules(config, params, edgejsCode, ossjsCode) {
         "functionName": "edge_function"
     }];
     params["Functions"] = JSON.stringify(functions);
+    
     return params
 }
 
 // program build   
 function build(program) {
-    let { config, client, params, requestOption } = getConfigAndClient();
+    let { config, params, requestOption } = getConfigAndClient();
     if (program.show == true) {
         clientCustom('show');
     } else if (program.delete == true) {
@@ -165,12 +164,11 @@ function build(program) {
         let fileStr = fs.readFileSync(edgejsFile, {
             encoding: 'binary'
         });
-        // let buf = new Buffer(fileStr, 'binary');
         let buf = Buffer.from(fileStr, 'binary');
         let edgejsCode = iconv.decode(buf, 'utf8');
         let ossjsCode = undefined;
-        // edge.js > 4K will be put to oss
-        if (stats["size"] > 4096) {
+        // edge.js > 45K will be put to oss
+        if (stats["size"] > 46080) {
             // 初始化edgeCDN
             const cdnClinet = new edgeCDN({
                 accessKeyId: config.accessKeyID,
@@ -189,7 +187,7 @@ function build(program) {
                 body: edgejsCode,
                 resolveWithFullResponse: true,
             };
-            rp(rpOptions).then(function (response, body) {
+            rp(rpOptions).then(function (response) {
                 if (response.statusCode == 200) {
                     ossjsCode = ossObjectName;
                     let params_result = buildRules(config, params, edgejsCode, ossjsCode);
@@ -205,6 +203,7 @@ function build(program) {
             });
         } else {
             let params_result = buildRules(config, params, edgejsCode, ossjsCode);
+            requestOption.method = 'POST';
             requestClient('SetCdnDomainStagingConfig', params_result, requestOption, 'Succeed');
         }
     }
