@@ -7,6 +7,8 @@ const base64 = require('js-base64').Base64;
 const popCore = require('@alicloud/pop-core');
 const edgeCDN = require('../edge/edgecdn.js');
 const assert = require('assert');
+const shell = require('shelljs');
+
 // get config and client 
 function getConfigAndClient() {
     let config = {};
@@ -37,6 +39,7 @@ function clientCustom(status) {
     let { client, params, requestOption } = getConfigAndClient();
     params["FunctionNames"] = 'edge_function';
     client.request('DescribeCdnDomainStagingConfig', params, requestOption).then((result) => {
+        console.log("clientCustom -> result", result)
         let domainConfig = result.DomainConfigs;
         for (var d in domainConfig) {
             let config = domainConfig[d];
@@ -81,8 +84,12 @@ function show(config) {
 // Build  Success or Delete or Rollback
 function requestClient(url, params, requestOption, status) {
     let { client } = getConfigAndClient();
-    client.request(url, params, requestOption).then((result) => {
+    client.request(url, params, requestOption).then(async (result) => {
         if (result.RequestId) {
+            if (status == 'Succeed') {
+                let configPath = path.resolve('config.js');
+                await shell.sed('-i', /buildTime:.*/, `buildTime:${parseInt(Date.now() / 1000)}`, configPath);
+            }
             console.log(chalk.green(`Build ${status}...`));
         }
     }, (ex) => {
@@ -145,7 +152,7 @@ function buildRules(config, params, edgejsCode, ossjsCode) {
         "functionName": "edge_function"
     }];
     params["Functions"] = JSON.stringify(functions);
-    
+
     return params
 }
 
@@ -169,7 +176,7 @@ function build(program) {
         let ossjsCode = undefined;
         // edge.js > 45K will be put to oss
         if (stats["size"] > 46080) {
-            // 初始化edgeCDN
+            // Initialize edgeCDN
             const cdnClinet = new edgeCDN({
                 accessKeyId: config.accessKeyID,
                 accessKeySecret: config.accessKeySecret,
@@ -177,6 +184,7 @@ function build(program) {
                 domainName: config.domain
             });
             let r = cdnClinet.DescribeCdnService();
+            console.log("build -> r", r.url)
             let ossObjectName = `${config.domain}.${Date.now()}.js`;
             var rpOptions = {
                 method: 'PUT',
