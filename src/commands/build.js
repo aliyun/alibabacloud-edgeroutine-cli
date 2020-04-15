@@ -184,7 +184,6 @@ function build(program) {
                 domainName: config.domain
             });
             let r = cdnClinet.DescribeCdnService();
-            console.log("build -> r", r.url)
             let ossObjectName = `${config.domain}.${Date.now()}.js`;
             var rpOptions = {
                 method: 'PUT',
