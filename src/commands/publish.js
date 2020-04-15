@@ -100,7 +100,7 @@ function getSolution() {
                 /**
                  * Get buildTime and publishTime 
                  */
-                let buildTime = config.buildTime + 300;
+                let buildTime = config.buildTime + 300 || 300;
                 let publishTime = parseInt(Date.now() / 1000);
                 let leadTime = buildTime - publishTime < 0 ? 180 : buildTime - publishTime;
                 let thirtyPercentTime = leadTime * 0.3;
