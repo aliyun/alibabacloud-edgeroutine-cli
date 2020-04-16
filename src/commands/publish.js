@@ -129,10 +129,10 @@ function getSolution() {
                     if (isPublishOK) {
                         worker.postMessage({ num: parseInt(leadTime * (count / 10)) , total: leadTime, status: true, time: 100 })
                     } else {
-                        if (count == 9) {
+                        if (count == 7) {
                             worker.postMessage({ num: parseInt(leadTime * (count / 10)) , total: leadTime, status: false, time: 50})
                         } else {
-                            setTimeout(setFunction, thirtyPercentTime * countDownTime, count + 3)
+                            setTimeout(setFunction, thirtyPercentTime * countDownTime,7)
                         }
                     }
                 }
