@@ -8,6 +8,8 @@ const FS = require("fs");
 const Chalk = require("chalk");
 const CFonts= require("cfonts");
 const createPrintter = require("./printter.js");
+const OS = require("os");
+const Path = require("path");
 
 // Writer used for debug session to write data out
 class TerminalWriter {
@@ -115,6 +117,20 @@ function runDebugger(option={}) {
     cmd.setScriptFile(sourcePath, origin);
   }
 
+  // setup shell history accordingly
+  const homedir = OS.homedir();
+  const history_path = Path.join(homedir, ".edgeroutine-cli/");
+  if (!FS.existsSync(history_path)) {
+    FS.mkdirSync(history_path);
+  }
+  const history_file = Path.join(history_path, "history");
+  if (!FS.existsSync(history_file)) {
+    FS.closeSync(FS.openSync(history_file, "w"));
+  }
+
+  console.info(`debugger shell set homedir to: ${homedir}`);
+
+  shell.setupHistory(history_file, (err, repl) => {});
   shell.on("exit", () => { closer(); });
   shell.defineCommand("cls", {
     "help" : "clearScreen",
