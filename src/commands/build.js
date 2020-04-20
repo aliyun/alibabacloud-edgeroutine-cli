@@ -1,14 +1,14 @@
 const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
-const uuidv1 = require('uuid/v1');
 const iconv = require('iconv-lite');
-const request = require('request');
 const rp = require('request-promise');
 const base64 = require('js-base64').Base64;
 const popCore = require('@alicloud/pop-core');
 const edgeCDN = require('../edge/edgecdn.js');
 const assert = require('assert');
+const shell = require('shelljs');
+
 // get config and client 
 function getConfigAndClient() {
     let config = {};
@@ -39,6 +39,7 @@ function clientCustom(status) {
     let { client, params, requestOption } = getConfigAndClient();
     params["FunctionNames"] = 'edge_function';
     client.request('DescribeCdnDomainStagingConfig', params, requestOption).then((result) => {
+        console.log("clientCustom -> result", result)
         let domainConfig = result.DomainConfigs;
         for (var d in domainConfig) {
             let config = domainConfig[d];
@@ -82,9 +83,13 @@ function show(config) {
 
 // Build  Success or Delete or Rollback
 function requestClient(url, params, requestOption, status) {
-    let { client } = getConfigAndClient()
-    client.request(url, params, requestOption).then((result) => {
+    let { client } = getConfigAndClient();
+    client.request(url, params, requestOption).then(async (result) => {
         if (result.RequestId) {
+            if (status == 'Succeed') {
+                let configPath = path.resolve('config.js');
+                await shell.sed('-i', /buildTime:.*/, `buildTime:${parseInt(Date.now() / 1000)}`, configPath);
+            }
             console.log(chalk.green(`Build ${status}...`));
         }
     }, (ex) => {
@@ -147,12 +152,13 @@ function buildRules(config, params, edgejsCode, ossjsCode) {
         "functionName": "edge_function"
     }];
     params["Functions"] = JSON.stringify(functions);
+
     return params
 }
 
 // program build   
 function build(program) {
-    let { config, client, params, requestOption } = getConfigAndClient();
+    let { config, params, requestOption } = getConfigAndClient();
     if (program.show == true) {
         clientCustom('show');
     } else if (program.delete == true) {
@@ -165,13 +171,12 @@ function build(program) {
         let fileStr = fs.readFileSync(edgejsFile, {
             encoding: 'binary'
         });
-        // let buf = new Buffer(fileStr, 'binary');
         let buf = Buffer.from(fileStr, 'binary');
         let edgejsCode = iconv.decode(buf, 'utf8');
         let ossjsCode = undefined;
-        // edge.js > 4K will be put to oss
-        if (stats["size"] > 4096) {
-            // 初始化edgeCDN
+        // edge.js > 45K will be put to oss
+        if (stats["size"] > 46080) {
+            // Initialize edgeCDN
             const cdnClinet = new edgeCDN({
                 accessKeyId: config.accessKeyID,
                 accessKeySecret: config.accessKeySecret,
@@ -189,7 +194,7 @@ function build(program) {
                 body: edgejsCode,
                 resolveWithFullResponse: true,
             };
-            rp(rpOptions).then(function (response, body) {
+            rp(rpOptions).then(function (response) {
                 if (response.statusCode == 200) {
                     ossjsCode = ossObjectName;
                     let params_result = buildRules(config, params, edgejsCode, ossjsCode);
@@ -205,6 +210,7 @@ function build(program) {
             });
         } else {
             let params_result = buildRules(config, params, edgejsCode, ossjsCode);
+            requestOption.method = 'POST';
             requestClient('SetCdnDomainStagingConfig', params_result, requestOption, 'Succeed');
         }
     }

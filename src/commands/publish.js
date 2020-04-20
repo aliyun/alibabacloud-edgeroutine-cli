@@ -1,10 +1,12 @@
 const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
-const uuidv1 = require('uuid/v1');
 const base64 = require('js-base64').Base64;
 const popCore = require('@alicloud/pop-core');
-
+const inquirer = require('inquirer');
+const shell = require('shelljs');
+const { Worker, isMainThread } = require('worker_threads');
+var PublishError = null;
 // get config and Client 
 function getConfigAndClient() {
     let config = {};
@@ -43,7 +45,13 @@ function clientCustom(status) {
                     show(config);
                 } else if (status == 'delete') {
                     params["ConfigId"] = config.ConfigId;
-                    requestClient('DeleteSpecificConfig', params, requestOption, 'Deleted');
+                    client.request('DeleteSpecificConfig', params, requestOption).then((result) => {
+                        if (result.RequestId) {
+                            console.log(chalk.green(`Publish Delete Success...`));
+                        }
+                    }, (ex) => {
+                        console.log(chalk.red('Publish Delete Failed'));
+                    });
                 }
             }
         }
@@ -73,34 +81,110 @@ function show(config) {
     return 0;
 }
 
+/**
+ *   Submit questions and answers
+ */
 
-function requestClient(url, params, requestOption, status) {
-    let { client } = getConfigAndClient()
-    client.request(url, params, requestOption).then((result) => {
-        if (result.RequestId) {
-            console.log(chalk.green(`Publish ${status}...`));
+function getSolution() {
+    let { config } = getConfigAndClient()
+    inquirer.prompt([{
+        type: 'confirm',
+        name: 'grayscale-test-published',
+        message: 'No grayscale test is not published, have you completed a grayscale test? （无灰度不发布,您进行灰度测试了吗？）: ',
+    }]).then((answer) => {
+        if (answer['grayscale-test-published']) {
+            console.log(' ');
+
+            if (isMainThread && config.buildTime !== null) {
+         
+                /**
+                 * Get buildTime and publishTime 
+                 */
+                let buildTime = config.buildTime + 300 || 300;
+                let publishTime = parseInt(Date.now() / 1000);
+                let leadTime = buildTime - publishTime < 0 ? 180 : buildTime - publishTime;
+                let thirtyPercentTime = leadTime * 0.3;
+                let countDownTime = 1000;
+                /**
+                 *  Create a worker thread to load the progress
+                 */
+                let pathString = path.resolve(__dirname, '../utils/Woker.js')
+                const worker = new Worker(pathString, { workerData: process.stdout.columns });
+                worker.postMessage({ num: 0, total: leadTime, status: true, time: countDownTime })
+                worker.on('message', async (value) => {
+                    if (value) {
+                        console.log(chalk.green(`Publish Succeed...`));
+                        await shell.sed('-i', /buildTime:.*/, `buildTime:null`, path.resolve('config.js'));
+                    } else {
+                        console.log(PublishError);
+                        console.log(chalk.red('Publish need build first or wait build Succeed...'));
+                    }
+                    process.exit(0);
+                })
+                /**
+                 * Timing acquisition status
+                 */
+                let setFunction = async (count) => {
+                    let isPublishOK = await GetPublishFlag();
+                    if (isPublishOK) {
+                        worker.postMessage({ num: parseInt(leadTime * (count / 10)) , total: leadTime, status: true, time: 100 })
+                    } else {
+                        if (count == 7) {
+                            worker.postMessage({ num: parseInt(leadTime * (count / 10)) , total: leadTime, status: false, time: 50})
+                        } else {
+                            setTimeout(setFunction, thirtyPercentTime * countDownTime,7)
+                        }
+                    }
+                }
+                setTimeout(setFunction, thirtyPercentTime * countDownTime, 3)
+            } else {
+                console.log(chalk.red('Publish need build first or wait build Succeed ...'));
+            }
+        } else {
+            console.log(' ');
+            console.log(`please run this order in terminal:\n`);
+            console.log(chalk.yellow(`curl -v 'http://${config.domain}' -x 42.123.119.50:80`));
         }
-    }, (ex) => {
-        status == 'Deleted' && console.log(chalk.red('Publish delete need build rollback first'));
-        status == "Succeed" && (() => {
-            console.log(ex);
-            console.log(chalk.red('Publish need build first or wait build success...'));
-        })();
-    });
+    }).catch((err) => {
+        console.log(chalk.red(err));
+    })
 }
 
+/**
+ * Gets the status of the commit
+ *  
+ */
+
+async function GetPublishFlag() {
+    let flag = null;
+    let { config, params, requestOption, client } = getConfigAndClient();
+    params["DomainName"] = config.domain;
+    params["FunctionName"] = "edge_function";
+    let result = await client.request('PublishStagingConfigToProduction', params, requestOption).catch((ex) => {
+        flag = false
+        PublishError = ex;
+    });
+    if (result !== undefined && result.hasOwnProperty('RequestId')) {
+        flag = true
+    }
+    return flag
+}
+
+/**
+ *  The Main Function
+ * @param {Object} program 
+ */
 
 function publish(program) {
-    let { config, params, requestOption } = getConfigAndClient();
     if (program.show == true) {
         clientCustom('show');
     } else if (program.delete == true) {
         clientCustom('delete');
     } else {
-        params["DomainName"] = config.domain;
-        params["FunctionName"] = "edge_function";
-        requestClient('PublishStagingConfigToProduction', params, requestOption, 'Succeed');
+        getSolution()
     }
 }
 
 module.exports = publish
+
+

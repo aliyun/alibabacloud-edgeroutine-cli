@@ -33,6 +33,8 @@ var config = {
     // alicloud config
     accessKeyID: "", // 阿里云账号的access id
     accessKeySecret: "", // 阿里云账号的access secret
+
+    buildTime:null,
 };
 
 module.exports = config;
