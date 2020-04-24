@@ -90,7 +90,7 @@ function getSolution() {
     inquirer.prompt([{
         type: 'confirm',
         name: 'grayscale-test-published',
-        message: 'No grayscale test is not published, have you completed a grayscale test? （无灰度不发布,您进行灰度测试了吗？）: ',
+        message: 'No grayscale test is not published, have you completed a grayscale test? \n（无灰度不发布,您进行灰度测试了吗？）: ',
     }]).then((answer) => {
         if (answer['grayscale-test-published']) {
             console.log(' ');
