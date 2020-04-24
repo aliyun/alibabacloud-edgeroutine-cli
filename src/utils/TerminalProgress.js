@@ -1,3 +1,4 @@
+
 class TerminalProgress {
     constructor(description, bar_length) {
         // the description info
