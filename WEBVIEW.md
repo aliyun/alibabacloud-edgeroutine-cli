@@ -78,7 +78,7 @@ async function h(event) {
 }
 ```
 
-**console 的使用**
+**Console 的使用**
 +  可根据console API，可在代码进行调试
 +  执行下面代码，即可获取一个对象
 
@@ -116,6 +116,10 @@ addEventListener('fetch', event => {
 帮助文档部分暂时仅支持内部员工使用，外部文档正在更新中，敬请关注！
 
 >>
+
+
+
+
 
 # EdgeRoutine-cli webview
 
