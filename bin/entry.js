@@ -4,7 +4,7 @@ const config = require('../src/commands/config');
 const init = require('../src/commands/init');
 const publish = require('../src/commands/publish');
 const dbg = require("../src/debugger/lib.js");
-
+const app=require("../src/web_view/app");
 // Modify if we depoly our debugger into different places
 const debuggerIp = "debugger.ialicdn.com";
 
@@ -45,6 +45,10 @@ program
     .option('-d, --delete', 'delete published code')
     .description('Publish code to remote environment')
     .action(publish)
+
+program
+    .command('webview')
+    .action(app)
 
 program
     .command('debugger [url] [id] [path] [origin]')
