@@ -3,7 +3,7 @@ class TerminalProgress {
         // the description info
         this.description = description || 'OnProgress';  
         // the render str length
-        this.length = bar_length || 50;     
+        this.length = 50;     
     }
 
     renderOption(opts) {
