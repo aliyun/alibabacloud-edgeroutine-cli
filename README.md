@@ -104,7 +104,13 @@ $ edgeroutine-cli publish -s
 $ edgeroutine-cli debugger
 ```
 
-### 9. How to debugger in shell/cli
+### 9. Webview code and You can open the local browser test page  127.0.0.1:5888/  
+Use the instructions to refer to the WEBVIEW file
+```sh
+$ edgeroutine-cli webview
+```
+
+### 10. How to debugger in shell/cli
 ```
 $ help()
 $ source("./edge.js")

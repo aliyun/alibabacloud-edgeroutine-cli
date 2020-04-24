@@ -11,10 +11,10 @@ const exec = require('child_process').exec;
 const views = require('koa-views');
 const send = require('koa-send');
 const koaStatic = require('koa-static');
-const WebSocketApi = require('./utils/ws');//引入封装的ws模块
+const WebSocketApi = require('./utils/ws');
 const app = new Koa();
 const server = http.createServer(app.callback());
-const wss = new WebSocket.Server({// 同一个端口监听不同的服务
+const wss = new WebSocket.Server({
     server
 });
 WebSocketApi(wss);
@@ -62,8 +62,8 @@ router.get('/upload', async (ctx) => {
 
 app.use(router.routes());
 app.use(router.allowedMethods());
-const hostName = '127.0.0.1'; //ip
-const port = 5888; //端口
+const hostName = '127.0.0.1';
+const port = 5888;
 
 const openDefaultBrowser = function (url) {
     switch (process.platform) {
