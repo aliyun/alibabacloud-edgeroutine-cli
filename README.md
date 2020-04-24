@@ -23,7 +23,7 @@ $ npm install @alicloud/edgeroutine-cli -g
 
 ## Prerequisite
 
-Node.js >= 12.x
+Node.js >= 8.x
 
 ### Notes
 
