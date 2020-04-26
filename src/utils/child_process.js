@@ -1,10 +1,14 @@
-let slog = require('single-line-log').stdout;
 let chalk = require('chalk')
-const { parentPort,workerData } = require('worker_threads');
-const TerminalProgress = require('../utils/TerminalProgress');
-const terminalProgress = new TerminalProgress('On Publishing', workerData-30);
+let slog = require('single-line-log').stdout;
+const TerminalProgress = require('./TerminalProgress');
+const terminalProgress = new TerminalProgress('On Publishing');
 var Timer = null;
-parentPort.on('message', (value) => {
+
+process.on('message',(value)=>{
+    render(value)
+})
+
+function render (value){
     let num = value.num;
     let total = value.total;
     let status = value.status
@@ -12,7 +16,6 @@ parentPort.on('message', (value) => {
     if (Timer) {
         clearInterval(Timer)
     }
-    
     Timer = setInterval(() => {
         if (num <= total) {
             let  {description,complete,uncomplete,progressNum} = terminalProgress.renderOption({ completed: num, total: total })
@@ -21,14 +24,13 @@ parentPort.on('message', (value) => {
                 slog(renderString) 
             }else{
                 let renderString  = `${description}: ${complete}${uncomplete}  ${progressNum} \n\n`
-                slog(chalk.red(renderString))
+                slog(chalk.red(renderString)) 
             }
-            
             num++
         } else {
-            clearInterval(Timer)
-            parentPort.postMessage(status)        
-            process.exit(0)
+            clearInterval(Timer)    
+            process.exit(status)
         }
     }, time)
-});
+}
+
