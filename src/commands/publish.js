@@ -109,9 +109,9 @@ function getSolution() {
                  *   Create a child process to load the task
                  */
 
-                let pathString = path.resolve(__dirname, '../utils/child_process.js')
-                const subprocess = child_process.fork(pathString)
-                subprocess.send({ num: 0, total: leadTime, status: true, time: countDownTime })
+                let pathString = path.resolve(__dirname, '../utils/child_process.js');
+                const subprocess = child_process.fork(pathString);
+                subprocess.send({ num: 0, total: leadTime, status: true, time: countDownTime });
                 subprocess.on('close', async (value) => {
                     if (value) {
                         console.log(chalk.green(`Publish Succeed...`));
@@ -129,16 +129,16 @@ function getSolution() {
                 let setFunction = async (count) => {
                     let isPublishOK = await GetPublishFlag();
                     if (isPublishOK) {
-                        subprocess.send({ num: parseInt(leadTime * (count / 10)) , total: leadTime, status: true, time: 100 })
+                        subprocess.send({ num: parseInt(leadTime * (count / 10)), total: leadTime, status: true, time: 100 })
                     } else {
                         if (count == 7) {
-                            subprocess.send({ num: parseInt(leadTime * (count / 10)) , total: leadTime, status: false, time: 50})
+                            subprocess.send({ num: parseInt(leadTime * (count / 10)), total: leadTime, status: false, time: 50 })
                         } else {
-                            setTimeout(setFunction, thirtyPercentTime * countDownTime,7)
+                            setTimeout(setFunction, thirtyPercentTime * countDownTime, 7)
                         }
                     }
                 }
-                setTimeout(setFunction, thirtyPercentTime * countDownTime, 3)
+                setTimeout(setFunction, thirtyPercentTime * countDownTime, 3);
             } else {
                 console.log(chalk.red('Publish need build first or wait build Succeed ...'));
             }
