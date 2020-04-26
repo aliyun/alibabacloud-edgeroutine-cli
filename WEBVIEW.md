@@ -121,14 +121,14 @@ addEventListener('fetch', event => {
 
 This web application is a debugging tool based on the EdgeRoutine cli tool developed for front-end and back-end testing.
 
-## Supported languages
+## Supported Languages
 + Javascript
 
 ## Instructions for use
 
 Start the web debugger according to the edgeroutine-cli webview command line
 
-### 1. Code editing
+### 1. Code Editing
 
 There will be default initial test code in the code editing section, you can write code for debugging according to your needs,
 After editing the code, click **Export** to download it locally.
@@ -147,7 +147,7 @@ async function handleRequest (request) {
 ```
 
 
-### 2. Upload files
+### 2. Upload Files
 
 Upload the local JS file, you can also choose to upload the edge.js file created by `edgeroutine-cli init`
 
@@ -171,7 +171,7 @@ If you need to select the download location or overwrite the existing **edge.js*
 + This test is a JavaScript environment, you can use other JavaScript functions
 + Support get and post requests
 
-#### GET request
+#### GET Request
 + Header can be added
 + Enter the test URL **Send** for detailed test information
 The sample code is as follows:
@@ -186,7 +186,7 @@ async function handleRequest (request) {
 ```
 
 
-#### POST request
+#### POST Request
 + Can carry body information for testing
 
 The sample code is as follows:
