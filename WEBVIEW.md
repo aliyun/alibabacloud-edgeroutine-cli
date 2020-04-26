@@ -31,7 +31,7 @@ async function handleRequest(request) {
 上传本地JS文件，您也可选择上传 `edgeroutine-cli init` 创建的edge.js文件
 
 
-### 3. 导出
+###  3. 导出
 
 点击 **导出** 按钮，可将文件下载到本地。
 
@@ -78,7 +78,7 @@ async function h(event) {
 }
 ```
 
-**Console 的使用**
+**Console的使用**
 +  可根据console API，可在代码进行调试
 +  执行下面代码，即可获取一个对象
 
@@ -114,10 +114,6 @@ addEventListener('fetch', event => {
 
 ## 帮助
 帮助文档部分暂时仅支持内部员工使用，外部文档正在更新中，敬请关注！
-
->>
-
-
 
 
 
