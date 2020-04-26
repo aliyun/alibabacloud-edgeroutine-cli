@@ -5,7 +5,7 @@ const base64 = require('js-base64').Base64;
 const popCore = require('@alicloud/pop-core');
 const inquirer = require('inquirer');
 const shell = require('shelljs');
-const { Worker, isMainThread } = require('worker_threads');
+const child_process = require('child_process');
 var PublishError = null;
 // get config and Client 
 function getConfigAndClient() {
@@ -90,13 +90,12 @@ function getSolution() {
     inquirer.prompt([{
         type: 'confirm',
         name: 'grayscale-test-published',
-        message: 'No grayscale test is not published, have you completed a grayscale test? （无灰度不发布,您进行灰度测试了吗？）: ',
+        message: 'No grayscale test is not published, have you completed a grayscale test? \n（无灰度不发布,您进行灰度测试了吗？）: ',
     }]).then((answer) => {
         if (answer['grayscale-test-published']) {
             console.log(' ');
 
-            if (isMainThread && config.buildTime !== null) {
-         
+            if (config.buildTime !== null) {
                 /**
                  * Get buildTime and publishTime 
                  */
@@ -105,13 +104,15 @@ function getSolution() {
                 let leadTime = buildTime - publishTime < 0 ? 180 : buildTime - publishTime;
                 let thirtyPercentTime = leadTime * 0.3;
                 let countDownTime = 1000;
+
                 /**
-                 *  Create a worker thread to load the progress
+                 *   Create a child process to load the task
                  */
-                let pathString = path.resolve(__dirname, '../utils/Woker.js')
-                const worker = new Worker(pathString, { workerData: process.stdout.columns });
-                worker.postMessage({ num: 0, total: leadTime, status: true, time: countDownTime })
-                worker.on('message', async (value) => {
+
+                let pathString = path.resolve(__dirname, '../utils/child_process.js')
+                const subprocess = child_process.fork(pathString)
+                subprocess.send({ num: 0, total: leadTime, status: true, time: countDownTime })
+                subprocess.on('close', async (value) => {
                     if (value) {
                         console.log(chalk.green(`Publish Succeed...`));
                         await shell.sed('-i', /buildTime:.*/, `buildTime:null`, path.resolve('config.js'));
@@ -120,17 +121,18 @@ function getSolution() {
                         console.log(chalk.red('Publish need build first or wait build Succeed...'));
                     }
                     process.exit(0);
-                })
+                });
+
                 /**
                  * Timing acquisition status
                  */
                 let setFunction = async (count) => {
                     let isPublishOK = await GetPublishFlag();
                     if (isPublishOK) {
-                        worker.postMessage({ num: parseInt(leadTime * (count / 10)) , total: leadTime, status: true, time: 100 })
+                        subprocess.send({ num: parseInt(leadTime * (count / 10)) , total: leadTime, status: true, time: 100 })
                     } else {
                         if (count == 7) {
-                            worker.postMessage({ num: parseInt(leadTime * (count / 10)) , total: leadTime, status: false, time: 50})
+                            subprocess.send({ num: parseInt(leadTime * (count / 10)) , total: leadTime, status: false, time: 50})
                         } else {
                             setTimeout(setFunction, thirtyPercentTime * countDownTime,7)
                         }
