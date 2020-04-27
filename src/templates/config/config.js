@@ -10,10 +10,10 @@ var config = {
 
     // Edge jsConfig Master Config (Required)
     jsConfig: {
-        "path": "edge.js", // path: [edge.js/path]  edge.js will be delivered to all alibaba global edge nodes, you could replace it.
+        "path": "edge.js", // path: [edge.js/path]  Edge.js will be delivered to all alibaba global edge nodes, you could replace it.
         "pos": "head", // pos: [head/foot] JavaScript code is executed before/after CDN business
-        "jsmode": "redirect", // jsmode: [redirect/bypass]  redirect/bypass requests to javaScript code execution
-        "jsttl": 1800 // jsttl: [>1800] JavaScript code timeout is default 1800 seconds, i.e.after 30 minutes your global variable will be emptied  (recommended for simple cache only) 
+        "jsmode": "redirect", // jsmode: [redirect/bypass]  Redirect/bypass requests to JavaScript code execution
+        "jsttl": 1800 // jsttl: [>1800] JavaScript code timeout is default 1800 seconds, i.e.after 30 minutes your global variable will be emptied  (recommended for simple cache only)
     },
 
     // Edge jsSession Optional 
