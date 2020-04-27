@@ -105,10 +105,11 @@ $ edgeroutine-cli debugger
 ```
 
 ### 9. Webview code and You can open the local browser test page  127.0.0.1:5888/  
-Use the instructions to refer to the WEBVIEW.md file
 ```sh
 $ edgeroutine-cli webview
 ```
+
+You can read the WEBVIEW.md file and understand the instructions.
 
 ### 10. How to debugger in shell/cli
 ```
