@@ -47,11 +47,11 @@ async function handleRequest(request) {
 
 +  http/get/post 内置函数进行http请求触发，收到回复的响应数据
 +  code代码、url地址、请求方式必须传的参数
-+ 本测试是JavaScript环境，您可以使用其他JavaScript的功能
++  本测试是JavaScript环境，您可以使用其他JavaScript的功能
 +  支持get、post请求
 
 #### GET请求
-+ 可添加header头
++  可添加header头
 +  输入测试的URL地址**Send**获取详细测试信息
 示例代码如下：
 ```
@@ -113,27 +113,27 @@ addEventListener('fetch', event => {
 ```
 
 ## 帮助
-帮助文档部分暂时仅支持内部员工使用，外部文档正在更新中，敬请关注！
+帮助文档暂时仅支持内部员工使用，外部文档正在更新中，敬请关注！
+
 
 
 
 # EdgeRoutine-cli webview
 
-This web application is a debugging tool based on the EdgeRoutine cli tool developed for front-end and back-end testing.
+  This web application is a debugging tool based on the EdgeRoutine cli tool developed for front-end and back-end testing.
 
 ## Supported Languages
 + Javascript
 
-## Instructions for use
+## Instructions 
 
-Start the web debugger according to the edgeroutine-cli webview command line
+  Run edgeroutine-cli webview command
 
-### 1. Code Editing
+### 1. Editing
 
-There will be default initial test code in the code editing section, you can write code for debugging according to your needs,
-After editing the code, click **Export** to download it locally.
+	You can write code for debugging according to your needs and click **Export** to download it locally.
 
-Sample initial code:
+example:
 
 ```
 
@@ -149,32 +149,33 @@ async function handleRequest (request) {
 
 ### 2. Upload Files
 
-Upload the local JS file, you can also choose to upload the edge.js file created by `edgeroutine-cli init`
+Upload the local JS file, you can also choose to upload the edge.js file created by `edgeroutine-cli init`.
 
 
 ### 3. Export
 
 Click the **Export** button to download the file to the local.
 
-### Attention! ! !
-If you need to select the download location or overwrite the existing **edge.js** file, you can open the browser settings, otherwise you will directly download **test.js** test code
+### Please pay attention to it!
+If you need to select the download location or overwrite the existing **edge.js** file, you can open the browser settings.
 
 > 1): Open the browser settings;
 
-> 2): Advanced settings> Download content> "Ask each folder before downloading"
+> 2): Advanced > Downloads > "Ask where to save each file before downloading"
 
 
 ### 4. Debug
 
-+ http / get / post built-in function to trigger http request and receive response data
-+ Code code, url address, parameters that must be passed in the request method
-+ This test is a JavaScript environment, you can use other JavaScript functions
-+ Support get and post requests
++ http/get/post request and get response data
++ Code, url, Request method (required)
++ You can use other JavaScript functions
++ Support get/post requests
 
 #### GET Request
-+ Header can be added
-+ Enter the test URL **Send** for detailed test information
-The sample code is as follows:
++ Add Headers
++ Enter the test URL **Send** and get response
+
+example:
 
 ```
 addEventListener ('fetch', event => {
@@ -187,9 +188,9 @@ async function handleRequest (request) {
 
 
 #### POST Request
-+ Can carry body information for testing
++ Add body
 
-The sample code is as follows:
+example:
 ```
 addEventListener ('fetch', (event) => {
   event.respondWith (h (event));
@@ -201,11 +202,11 @@ async function h (event) {
 
 ```
 
-**Use of console**
-+ Can be debugged in code according to console API
-+ Execute the following code to get an object
+**Console**
++ According to Console API debugging
++ Run the following code to get an object
 
-Code example:
+example:
 
 ```
 async function handleRequest (request) {
@@ -221,10 +222,10 @@ addEventListener ('fetch', event => {
 
 ### 3. Rendering
 
-+ The use of rendering pages is similar to **Debug**, only get requests are supported;
-+ Enter the URL address that meets the rules in the input box of the rendering page, click Go to get the response data to render html
++ Only supports GET requests
++ Enter the url to get the response data
 
-Sample code:
+example:
 
 ```
 async function handleRequest (request) {
@@ -238,6 +239,11 @@ addEventListener ('fetch', event => {
 ```
 
 ## Help
-The help documentation section is currently only supported by internal employees.
 
-The external documentation is being updated, so stay tuned!
+Only for internal employees.
+
+We are always adding more functionality, so stay tuned!
+
+
+
+
