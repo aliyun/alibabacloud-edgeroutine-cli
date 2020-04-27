@@ -120,18 +120,18 @@ addEventListener('fetch', event => {
 
 # EdgeRoutine-cli webview
 
-  This web application is a debugging tool based on the EdgeRoutine cli tool developed for front-end and back-end testing.
+  This web application is a debugging tool based on the EdgeRoutine cli tool developed for developer testing.
 
 ## Supported Languages
 + Javascript
 
 ## Instructions 
 
-  Run edgeroutine-cli webview command
+   Run edgeroutine-cli webview command
 
 ### 1. Editing
 
-	You can write code for debugging according to your needs and click **Export** to download it locally.
+   You can write code for debugging according to your needs and click **Export** to download it locally.
 
 example:
 
@@ -149,15 +149,16 @@ async function handleRequest (request) {
 
 ### 2. Upload Files
 
-Upload the local JS file, you can also choose to upload the edge.js file created by `edgeroutine-cli init`.
+  Upload the local JS file, you can also choose to upload the edge.js file created by `edgeroutine-cli init`.
 
 
 ### 3. Export
 
-Click the **Export** button to download the file to the local.
+  Click the **Export** button to download the file to the local.
 
 ### Notes
-If you need to select the download location or overwrite the existing **edge.js** file, you can open the browser settings.
+
+  If you need to select the download location or overwrite the existing **edge.js** file, you can open the browser settings.
 
 > 1): Open the browser settings;
 
@@ -172,6 +173,7 @@ If you need to select the download location or overwrite the existing **edge.js*
 + Support get/post requests
 
 #### GET Request
+
 + Add Headers
 + Enter the test URL **Send** and get response
 
@@ -188,6 +190,7 @@ async function handleRequest (request) {
 
 
 #### POST Request
+
 + Add body
 
 example:
@@ -203,6 +206,7 @@ async function h (event) {
 ```
 
 **Console**
+
 + According to Console API debugging
 + Run the following code to get an object
 
