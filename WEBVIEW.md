@@ -156,7 +156,7 @@ Upload the local JS file, you can also choose to upload the edge.js file created
 
 Click the **Export** button to download the file to the local.
 
-### Please pay attention to it!
+### Notes
 If you need to select the download location or overwrite the existing **edge.js** file, you can open the browser settings.
 
 > 1): Open the browser settings;
