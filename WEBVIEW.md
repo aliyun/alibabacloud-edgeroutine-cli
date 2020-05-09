@@ -35,7 +35,7 @@ async function handleRequest(request) {
 
 点击 **导出** 按钮，可将文件下载到本地。
 
-### 注意
+#### 注意
 如需选择下载位置或覆盖已有的**edge.js**文件，可将浏览器设置打开，否则将直接下载 **test.js** 测试代码
 
 > 1）：打开浏览器设置；
@@ -52,7 +52,9 @@ async function handleRequest(request) {
 
 #### GET请求
 +  可添加header头
+    + Headers格式:String
 +  输入测试的URL地址**Send**获取详细测试信息
+    + URL格式：http/https:xxx.com
 示例代码如下：
 ```
 addEventListener('fetch', event => {
@@ -66,6 +68,7 @@ async function handleRequest(request) {
 
 #### POST请求
 + 可携带body信息进行测试
+    + Body格式：String
 
 示例代码如下：
 ```
@@ -78,12 +81,11 @@ async function h(event) {
 }
 ```
 
-**Console的使用**
+#### Console的使用
 +  可根据console API，可在代码进行调试
 +  执行下面代码，即可获取一个对象
 
 代码示例：
-
 ```
 async function handleRequest(request) {
   let response = await fetch(request)
@@ -95,13 +97,12 @@ addEventListener('fetch', event => {
 })
 ```
 
-### 3. 渲染
+### 5. 渲染
 
 +  渲染页面的使用和 **调试** 类似，仅支持get请求；
 +  渲染页面input框输入符合规则的url地址，点击 Go 即可获取响应数据进行渲染html
 
 示例代码:
-
 ```
 async function handleRequest(request) {
   let response = await fetch(request)
@@ -112,7 +113,7 @@ addEventListener('fetch', event => {
 })
 ```
 
-## 帮助
+### 6. 帮助
 帮助文档暂时仅支持内部员工使用，外部文档正在更新中，敬请关注！
 
 
@@ -134,9 +135,7 @@ addEventListener('fetch', event => {
    You can write code for debugging according to your needs and click **Export** to download it locally.
 
 example:
-
 ```
-
 addEventListener ('fetch', event => {
     event.respondWith (handleRequest (event.request));
 });
@@ -156,7 +155,7 @@ async function handleRequest (request) {
 
   Click the **Export** button to download the file to the local.
 
-### Notes
+#### Notes
 
   If you need to select the download location or overwrite the existing **edge.js** file, you can open the browser settings.
 
@@ -175,10 +174,11 @@ async function handleRequest (request) {
 #### GET Request
 
 + Add Headers
+    + Headers:String
 + Enter the test URL **Send** and get response
+    + URL:http/https:xxx.com
 
 example:
-
 ```
 addEventListener ('fetch', event => {
     event.respondWith (handleRequest (event.request));
@@ -192,6 +192,7 @@ async function handleRequest (request) {
 #### POST Request
 
 + Add body
+    + Body:String
 
 example:
 ```
@@ -205,13 +206,12 @@ async function h (event) {
 
 ```
 
-**Console**
+#### Console
 
 + According to Console API debugging
 + Run the following code to get an object
 
 example:
-
 ```
 async function handleRequest (request) {
   let response = await fetch (request)
@@ -224,13 +224,12 @@ addEventListener ('fetch', event => {
 
 ```
 
-### 3. Rendering
+### 5. Rendering
 
 + Only supports GET requests
 + Enter the url to get the response data
 
 example:
-
 ```
 async function handleRequest (request) {
   let response = await fetch (request)
@@ -242,7 +241,7 @@ addEventListener ('fetch', event => {
 
 ```
 
-## Help
+### 6. Help
 
 Only for internal employees.
 

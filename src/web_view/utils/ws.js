@@ -52,6 +52,7 @@ async function handleRequest(request) {
         };
         wsServer.onmessage = (evt) => {
             let jsonData = evt.data;
+            // console.log(jsonData)
             if (jsonData.match("js.console")) {
                 try {
                     let reg = /{(.+)/;
@@ -64,6 +65,7 @@ async function handleRequest(request) {
             } else if (jsonData.match("httpResponse")) {
                 let reg = /{(.+)}/;
                 if (jsonData.match(reg)) {
+
                     let bodyJSON = JSON.parse(jsonData.match(reg)[0]);
                     if (typeof bodyJSON.data !== 'undefined') {
                         let bodyStr = bodyJSON.data.body;
@@ -104,9 +106,14 @@ async function handleRequest(request) {
                             "origin": "debug"
                           }
                         }`;
-                wsServer.send(`content-length: ${dataObj.length}\r\n\r\n${dataObj}`, () => {
-                    // console.info('setUserScriptContext成功发送')
-                });
+                if (wsServer.readyState === 1) {
+                    wsServer.send(`content-length: ${dataObj.length}\r\n\r\n${dataObj}`, () => {
+                        // console.info('setUserScriptContext成功发送')
+                    });
+                } else if (wsServer.readyState === 0) {
+                    console.log(`WebSocket is not open: readyState ${wsServer.readyState}`)
+                    // throw new Error('WebSocket is not open: readyState 0 (CONNECTING)');
+                }
             } else if (jsonStr.match('queryAlicdnData')) {
                 let jsonObj = JSON.parse(jsonStr);
                 let nextJsonObj = JSON.parse(jsonObj.data);
@@ -118,13 +125,17 @@ async function handleRequest(request) {
                                "method" : "${method}",
                                 "url" : "${url}",
                                 "header" : ${hdr},
-                                "body" : "${bodyData}",
+                                "body" : '${bodyData}',
                                 "event" : "fetch"
                               }
                          }`;
-                wsServer.send(`content-length: ${data.length}\r\n\r\n${data}`, () => {
-                    // console.info('setUserScriptContext成功发送')
-                });
+                if (wsServer.readyState === 1) {
+                    wsServer.send(`content-length: ${data.length}\r\n\r\n${data}`, () => {
+                        // console.info('setUserScriptContext成功发送')
+                    });
+                } else if (wsServer.readyState === 0) {
+                    console.log(`WebSocket is not open: readyState ${wsServer.readyState}`)
+                }
             }
         }
         socket.on("close", function () {
