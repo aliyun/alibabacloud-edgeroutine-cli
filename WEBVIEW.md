@@ -39,7 +39,6 @@ async function handleRequest(request) {
 如需选择下载位置或覆盖已有的**edge.js**文件，可将浏览器设置打开，否则将直接下载 **test.js** 测试代码
 
 > 1）：打开浏览器设置；
-
 > 2）：高级设置>下载内容>"下载前询问每个文件夹"
 
 
@@ -177,8 +176,8 @@ async function handleRequest (request) {
     + Headers:String
 + Enter the test URL **Send** and get response
     + URL:http/https:xxx.com
-
-example:
+    
+code:
 ```
 addEventListener ('fetch', event => {
     event.respondWith (handleRequest (event.request));
@@ -194,7 +193,7 @@ async function handleRequest (request) {
 + Add body
     + Body:String
 
-example:
+code:
 ```
 addEventListener ('fetch', (event) => {
   event.respondWith (h (event));
@@ -211,7 +210,7 @@ async function h (event) {
 + According to Console API debugging
 + Run the following code to get an object
 
-example:
+code:
 ```
 async function handleRequest (request) {
   let response = await fetch (request)
@@ -229,7 +228,7 @@ addEventListener ('fetch', event => {
 + Only supports GET requests
 + Enter the url to get the response data
 
-example:
+code:
 ```
 async function handleRequest (request) {
   let response = await fetch (request)

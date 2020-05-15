@@ -2,7 +2,7 @@ const fs = require('fs');
 const http = require('http');
 const path = require('path');
 const chalk = require('chalk');
-const Koa = require('Koa');
+const Koa = require('koa');
 const cors=require('koa2-cors');
 const router = require('koa-router')();
 const WebSocket = require('ws');
@@ -48,7 +48,6 @@ router.get('/readEdgeFile', async (ctx) => {
         }
     }
 })
-
 router.get('/upload', async (ctx) => {
     try{
         const path=`edge.js`;
@@ -57,9 +56,7 @@ router.get('/upload', async (ctx) => {
     }catch (e) {
         console.error(e);
     }
-})
-
-
+});
 app.use(router.routes());
 app.use(router.allowedMethods());
 const hostName = '127.0.0.1';

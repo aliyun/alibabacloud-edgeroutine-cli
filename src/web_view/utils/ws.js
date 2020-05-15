@@ -11,7 +11,6 @@ module.exports = Server => {
             headers: {"x-tworker-inspector": "debugger"}
         });
         let timerId = null;
-
         function keepAlive() {
             let timeout = 20000;
             if (wsServer.readyState === wsServer.OPEN) {
@@ -19,13 +18,11 @@ module.exports = Server => {
             }
             timerId = setTimeout(keepAlive, timeout);
         }
-
         function cancelKeepAlive() {
             if (timerId) {
                 clearTimeout(timerId);
             }
         }
-
         wsServer.onopen = () => {
             let targetFilePath = path.resolve('edge.js');
             if (!fs.existsSync(targetFilePath)) {
@@ -52,7 +49,6 @@ async function handleRequest(request) {
         };
         wsServer.onmessage = (evt) => {
             let jsonData = evt.data;
-            // console.log(jsonData)
             if (jsonData.match("js.console")) {
                 try {
                     let reg = /{(.+)/;
@@ -65,7 +61,6 @@ async function handleRequest(request) {
             } else if (jsonData.match("httpResponse")) {
                 let reg = /{(.+)}/;
                 if (jsonData.match(reg)) {
-
                     let bodyJSON = JSON.parse(jsonData.match(reg)[0]);
                     if (typeof bodyJSON.data !== 'undefined') {
                         let bodyStr = bodyJSON.data.body;
@@ -112,7 +107,6 @@ async function handleRequest(request) {
                     });
                 } else if (wsServer.readyState === 0) {
                     console.log(`WebSocket is not open: readyState ${wsServer.readyState}`)
-                    // throw new Error('WebSocket is not open: readyState 0 (CONNECTING)');
                 }
             } else if (jsonStr.match('queryAlicdnData')) {
                 let jsonObj = JSON.parse(jsonStr);
