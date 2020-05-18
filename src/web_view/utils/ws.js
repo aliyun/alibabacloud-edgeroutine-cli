@@ -11,6 +11,7 @@ module.exports = Server => {
             headers: {"x-tworker-inspector": "debugger"}
         });
         let timerId = null;
+
         function keepAlive() {
             let timeout = 20000;
             if (wsServer.readyState === wsServer.OPEN) {
@@ -18,11 +19,13 @@ module.exports = Server => {
             }
             timerId = setTimeout(keepAlive, timeout);
         }
+
         function cancelKeepAlive() {
             if (timerId) {
                 clearTimeout(timerId);
             }
         }
+
         wsServer.onopen = () => {
             let targetFilePath = path.resolve('edge.js');
             if (!fs.existsSync(targetFilePath)) {
@@ -51,9 +54,27 @@ async function handleRequest(request) {
             let jsonData = evt.data;
             if (jsonData.match("js.console")) {
                 try {
-                    let reg = /{(.+)/;
+                    let reg = /{(.+)/, textReg = /.*[\u4e00-\u9fa5]+.*/;
                     if (evt.data.match(reg)) {
-                        socket.send(evt.data.match(reg)[0]);
+                        let consoleData = JSON.parse(evt.data.match(reg)[0]);
+                        let {columnNumber, level, lineNumber, message: [{value: {data, type}}], stackTrace,} = consoleData.data;
+                        const dataStr = base64.decode(data);
+                        //Message contains Chinese
+                        if (textReg.test(dataStr)) {
+                            let sendConsoleData = {
+                                data: {
+                                    columnNumber: `${columnNumber}`,
+                                    level: `${level}`,
+                                    lineNumber: `${lineNumber}`,
+                                    message: [{value: {data: `${dataStr}`, type: `${type}`}}],
+                                    stackTrace: `${stackTrace}`
+                                },
+                                name: `${consoleData.name}`
+                            };
+                            socket.send(JSON.stringify(sendConsoleData));
+                        } else {
+                            socket.send(evt.data.match(reg)[0]);
+                        }
                     }
                 } catch (e) {
                     console.error(e)
