@@ -1,8 +1,5 @@
 'use strict';
-
-const base64 = require('js-base64').Base64;
 const crypto = require('crypto');
-const dateFormat = require('dateformat');
 const assert = require('assert');
 let EdgeCDN = class {
     /**
