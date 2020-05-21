@@ -29,7 +29,23 @@ app.use(views(__dirname + '/views', {map: {html: 'ejs'}}));
 app.use(koaStatic(__dirname + '/static'));
 router.get('/', async (ctx) => {
     await ctx.render('index');
-})
+});
+router.get('/test', async (ctx) => {
+    try{
+        ctx.body = {
+            code: 200,
+            msg: '查询成功',
+            data: 'hello world'
+        }
+    }catch (e) {
+        // console.error(e);
+        ctx.body = {
+            code: 412,
+            data: '无edge.js文件或路径错误',
+            msg: `信息有误`
+        }
+    }
+});
 router.get('/readEdgeFile', async (ctx) => {
     let {edgePath=''} =ctx.request.query;
     try{
@@ -47,7 +63,7 @@ router.get('/readEdgeFile', async (ctx) => {
             msg: `上传异常${e.message}`
         }
     }
-})
+});
 router.get('/upload', async (ctx) => {
     try{
         const path=`edge.js`;
