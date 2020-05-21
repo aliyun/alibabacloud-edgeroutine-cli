@@ -9,7 +9,7 @@ const app=require("../src/web_view/app");
 const debuggerIp = "debugger.ialicdn.com";
 
 program
-    .version('0.1.1', '-v, --version')
+    .version('0.1.2', '-v, --version')
     .on('--help', function () {
         console.log('');
         console.log('Examples:');

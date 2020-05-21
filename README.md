@@ -78,7 +78,13 @@ $ edgeroutine-cli build
 
 ### 5. Test your code now, you can also show your codes and related config.
 ```sh
-$ curl -v 'https://yourdomain.com/yourpath/' -x 42.123.119.50:80
+$ curl -v 'http://yourdomain.com/yourpath/' -x 42.123.119.50:80
+```
+
+or
+
+```sh
+$ curl --resolve yourdomain.com:443:42.123.119.50 'https://yourdomain.com/yourpath/' -v
 ```
 
 ```sh
