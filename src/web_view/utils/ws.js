@@ -57,10 +57,11 @@ async function handleRequest(request) {
                     let reg = /{(.+)/, textReg = /.*[\u4e00-\u9fa5]+.*/;
                     if (evt.data.match(reg)) {
                         let consoleData = JSON.parse(evt.data.match(reg)[0]);
-                        let {columnNumber, level, lineNumber, message: [{value: {data, type}}], stackTrace,} = consoleData.data;
+                        let {columnNumber, level, lineNumber, message, stackTrace,} = consoleData.data;
+                        let  [{value: {data, type}}]=message;
                         const dataStr = base64.decode(data);
                         //Message contains Chinese
-                        if (textReg.test(dataStr)) {
+                        if (typeof data==='string' && textReg.test(dataStr)) {
                             let sendConsoleData = {
                                 data: {
                                     columnNumber: `${columnNumber}`,
