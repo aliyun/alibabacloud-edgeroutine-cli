@@ -1,9 +1,7 @@
 #  Edgeroutine-cli Demo
 
 ## 示例说明
-
 ### 事件说明
-
 > Edgeroutine的客户需要调用addEventListener函数去注册一个事件回调，目前支持fetch事件；
   在fetch事件回调函数中，客户必须使用event.respondWith去注册一个异步函数，
   该异步函数将返回一个Promise对象，Promise在JavaScript中是ES6异步的核心，

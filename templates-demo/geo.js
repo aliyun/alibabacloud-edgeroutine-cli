@@ -9,10 +9,10 @@ addEventListener("fetch", function(event) {
 async function _handleGeo(event) {
     const info = event.info;
     let remote_addr = info.remote_addr;
-    let ip_isp_en = info.ip_isp_en;
-    let ip_city_en = info.ip_city_en;
-    let ip_region_en = info.ip_region_en;
-    let ip_country_en = info.ip_country_en;
+    let ip_isp_en = info.ip_isp;
+    let ip_city_en = info.ip_city;
+    let ip_region_en = info.ip_region;
+    let ip_country_en = info.ip_country;
     let scheme = info.scheme;
     let detector_device = info.detector_device;
     let content = `Geo: ${remote_addr}, \
