@@ -129,8 +129,9 @@ function runDebugger(option={}) {
   }
 
   console.info(`debugger shell set homedir to: ${homedir}`);
-
-  shell.setupHistory(history_file, (err, repl) => {});
+  if(shell.setupHistory){
+    shell.setupHistory(history_file, (err, repl) => {});
+  }
   shell.on("exit", () => { closer(); });
   shell.defineCommand("cls", {
     "help" : "clearScreen",
