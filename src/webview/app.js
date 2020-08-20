@@ -80,6 +80,11 @@ module.exports = function () {
                 console.log(err);
                 throw err;
             }
+            const dateConversion = (d) => {
+                return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();
+            };
+            const date=dateConversion(new Date());
+            console.log(`${date} Open the webview http://${hostName}:${port}`);
             console.log(`Open the webview http://${hostName}:${port}`);
             openDefaultBrowser(`http://${hostName}:${port}`);
             console.log(chalk.green('Open web debugger success'))
