@@ -1,22 +1,21 @@
-const fs = require('fs');
 const http = require('http');
-const path = require('path');
 const chalk = require('chalk');
 const Koa = require('koa');
 const cors=require('koa2-cors');
 const router = require('koa-router')();
 const WebSocket = require('ws');
-const popCore = require('@alicloud/pop-core');
 const exec = require('child_process').exec;
 const views = require('koa-views');
-const send = require('koa-send');
 const koaStatic = require('koa-static');
+const dateConversion=require('./utils/getNewDate');
 const WebSocketApi = require('./utils/ws');
 const app = new Koa();
 const server = http.createServer(app.callback());
 const wss = new WebSocket.Server({
     server
 });
+
+
 WebSocketApi(wss);
 app.use(cors({
     exposeHeaders: ['WWW-Authenticate', 'Server-Authorization'],
@@ -80,14 +79,10 @@ module.exports = function () {
                 console.log(err);
                 throw err;
             }
-            const dateConversion = (d) => {
-                return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate() + ' ' + d.getHours() + ':' + d.getMinutes() + ':' + d.getSeconds();
-            };
-            const date=dateConversion(new Date());
+            let date=dateConversion(new Date());
             console.log(`${date} Open the webview http://${hostName}:${port}`);
-            console.log(`Open the webview http://${hostName}:${port}`);
             openDefaultBrowser(`http://${hostName}:${port}`);
-            console.log(chalk.green('Open web debugger success'))
+            console.log(chalk.green('Open the webview success'))
         });
         server.on('error', onError);
     } catch (e) {

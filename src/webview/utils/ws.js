@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const base64 = require('js-base64').Base64;
 const chalk = require('chalk');
+const dateConversion=require('./getNewDate');
 
 module.exports = Server => {
     Server.on("connection", socket => {
@@ -96,7 +97,8 @@ async function handleRequest(request) {
         };
         wsServer.onclose = (e) => {
             cancelKeepAlive();
-            console.log(chalk.red(`closed state code：` + e.code));
+            const date=dateConversion(new Date());
+            console.log(chalk.red(`${date} closed state code：` + e.code));
             console.log(chalk.yellow('websocket closed!'));
             socket.send('websocket close');
         };
@@ -124,9 +126,7 @@ async function handleRequest(request) {
                           }
                         }`;
                 if (wsServer.readyState === 1) {
-                    wsServer.send(`content-length: ${dataObj.length}\r\n\r\n${dataObj}`, () => {
-                        // console.info('setUserScriptContext成功发送')
-                    });
+                    wsServer.send(`content-length: ${dataObj.length}\r\n\r\n${dataObj}`);
                 } else if (wsServer.readyState === 0) {
                     console.log(`WebSocket is not open: readyState ${wsServer.readyState}`)
                 }
@@ -146,9 +146,7 @@ async function handleRequest(request) {
                               }
                          }`;
                 if (wsServer.readyState === 1) {
-                    wsServer.send(`content-length: ${data.length}\r\n\r\n${data}`, () => {
-                        // console.info('setUserScriptContext成功发送')
-                    });
+                    wsServer.send(`content-length: ${data.length}\r\n\r\n${data}`);
                 } else if (wsServer.readyState === 0) {
                     console.log(`WebSocket is not open: readyState ${wsServer.readyState}`)
                 }
