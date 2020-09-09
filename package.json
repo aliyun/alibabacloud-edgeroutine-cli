@@ -3,8 +3,7 @@
   "version": "0.1.2",
   "description": "@alicloud/edgeroutine-cli",
   "bin": {
-    "edgeroutine-cli": "./bin/index.js",
-    "er": "./bin/index.js"
+    "edgeroutine-cli": "./bin/index.js"
   },
   "dependencies": {
     "@alicloud/pop-core": "^1.7.9",
