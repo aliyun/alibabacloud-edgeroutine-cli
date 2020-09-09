@@ -174,8 +174,10 @@ function build(program) {
         let buf = Buffer.from(fileStr, 'binary');
         let edgejsCode = iconv.decode(buf, 'utf8');
         let ossjsCode = undefined;
+        
         // edge.js > 45K will be put to oss
         if (stats["size"] > 46080) {
+            console.log("build -> size", stats["size"])
             // Initialize edgeCDN
             const cdnClinet = new edgeCDN({
                 accessKeyId: config.accessKeyID,
@@ -203,11 +205,12 @@ function build(program) {
                     console.log("upload edgejs failed with response %d", response.statusCode);
                     return;
                 }
-            }).catch(function (err) {
-                // Crawling failed...
-                console.log(`upload edgejs failed with err: ${err}`);
+            },function(resp){
+                let headers = resp.response.headers;
+                let statusCode = resp.response.statusCode;
+                console.log(chalk.red(`upload edgejs failed with statusCode: ${statusCode},via:${headers['via']},eagleid:${headers['eagleid']}`));
                 return;
-            });
+            })
         } else {
             let params_result = buildRules(config, params, edgejsCode, ossjsCode);
             requestOption.method = 'POST';

@@ -108,7 +108,7 @@ class DebugSession {
           "method" : "${method}",
           "url" : "${url}",
           "header" : ${hdr},
-          "body" : "${body}",
+          "body" : ${JSON.stringify(body)},
           "event" : "${ev}"
         }
       }`;
