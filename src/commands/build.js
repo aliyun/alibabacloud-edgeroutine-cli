@@ -140,7 +140,7 @@ function buildRules(config, params, edgejsCode, ossjsCode) {
             "argValue": options
         }, {
             "argName": "pri",
-            "argValue": "0"
+            "argValue": jsConfig.pri
         }, {
             "argName": "pos",
             "argValue": jsConfig.pos

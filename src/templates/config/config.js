@@ -3,7 +3,7 @@ var config = {
     apiVersion: '2018-05-10',
 
     // Aliyun CDN OpenAPI Endpoint
-    endpoint: 'https://cdn.aliyuncs.com', 
+    endpoint: 'https://cdn.aliyuncs.com',
 
     // Your CDN Domain
     domain: "",
@@ -12,6 +12,7 @@ var config = {
     jsConfig: {
         "path": "edge.js", // path: [edge.js/path]  Edge.js will be delivered to all alibaba global edge nodes, you could replace it.
         "pos": "head", // pos: [head/foot] JavaScript code is executed before/after CDN business
+        "pri": "0",   // pri : [0 high - 999 low]  The priority of head execution/tail execution is independent of each other
         "jsmode": "redirect", // jsmode: [redirect/bypass]  Redirect/bypass requests to JavaScript code execution
         "jsttl": 1800 // jsttl: [>1800] JavaScript code timeout is default 1800 seconds, i.e.after 30 minutes your global variable will be emptied  (recommended for simple cache only)
     },
@@ -36,7 +37,7 @@ var config = {
     accessKeySecret: "", // Your aliyun account AccessKeySecret
 
     // The build sucess current timestamp
-    buildTime:null,
+    buildTime: null,
 };
 
 module.exports = config;
