@@ -117,8 +117,11 @@ function getSolution() {
                         console.log(chalk.green(`Publish Succeed...`));
                         await shell.sed('-i', /buildTime:.*/, `buildTime:null`, path.resolve('config.js'));
                     } else {
-                        console.log(PublishError);
-                        console.log(chalk.red('Publish need build first or wait build Succeed...'));
+                        if (PublishError !== null && PublishError.code == 'StagingConfig.Failed') {
+                            console.log(chalk.red('Rules in staging are being configured, please try again later.(规则正在配置，请稍后再发布)'));
+                        } else {
+                            console.log(PublishError);
+                        }
                     }
                     process.exit(0);
                 });

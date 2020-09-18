@@ -1,4 +1,6 @@
 const program = require('commander');
+const fs = require('fs');
+const path = require('path');
 const { build } = require('../src/commands/build');
 const config = require('../src/commands/config');
 const init = require('../src/commands/init');
@@ -7,9 +9,11 @@ const dbg = require("../src/debugger/lib.js");
 
 // Modify if we depoly our debugger into different places
 const debuggerIp = "debugger.ialicdn.com";
+let json = fs.readFileSync(path.join(`${path.dirname(__dirname)}/package.json`),'utf-8');
+let version = JSON.parse(json).version;
 
 program
-    .version('0.1.2', '-v, --version')
+    .version(version, '-v, --version')
     .on('--help', function () {
         console.log('');
         console.log('Examples:');
