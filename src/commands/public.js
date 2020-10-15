@@ -3,8 +3,8 @@ const path = require('path');
 const chalk = require('chalk');
 const popCore = require('@alicloud/pop-core');
 const base64 = require('js-base64').Base64;
-const shell = require('shelljs');
-// get config and client 
+const inquirer = require('inquirer');
+
 function getConfigAndClient() {
     let config = {};
     if (fs.existsSync(path.resolve('config.js'))) {
@@ -29,7 +29,7 @@ function getConfigAndClient() {
     return { config, client, params, requestOption };
 }
 
-function show(AllDomianConfig, env) {
+function showRules(AllDomianConfig, env) {
     // AllDomianConfig
     console.log(chalk.yellow(`[EN] ${AllDomianConfig.length} configurations in  ${env == 'dev' ? 'staging' : 'production'} environment:`));
     console.log(chalk.yellow(`[ZN] ${env == 'dev' ? '模拟环境' : '生产环境'}共有${AllDomianConfig.length}条配置:`));
@@ -50,11 +50,12 @@ function show(AllDomianConfig, env) {
             }
         }
     }
+    console.log(' ')
 
 }
 
 // client request 
-async function clientCustom(status, env) {
+async function getStagingOrProductConfig(env) {
     let DomainConfig = [];
     let AllDomianConfig = [];
     let index = null;
@@ -82,14 +83,15 @@ async function clientCustom(status, env) {
                     let funcArg = FuncArg[key];
                     functionDict[funcArg["ArgName"]] = funcArg["ArgValue"];
                 }
-                AllDomianConfig.push(functionDict);
                 if (functionDict['grammar'] == 'js') {
                     ERConfigID = config.ConfigId;
                     index = i;
+                    AllDomianConfig.unshift(functionDict)
                 } else {
+                    // 计算ES的数量
                     ESCount++
+                    AllDomianConfig.push(functionDict);
                 }
-
                 if (env == 'prod') {
                     let func = {
                         FunctionArgs: FuncArg,
@@ -100,63 +102,94 @@ async function clientCustom(status, env) {
             }
         }
     }
-
-    if (status == 'show') {
-        show(AllDomianConfig, env);
-    } else if (status == 'build') {
+    // 
+    if (env == 'dev') {
         index != null ? result.DomainConfigs.splice(index, 1) : null
         DomainConfig = [...result.DomainConfigs];
-    } else if (status == 'delete') {
-        if (ERConfigID == null) {
-            let text = env == 'dev' ? '模拟环境' : '生产环境'
-            console.log(chalk.greenBright(`[EN] ${text} ER规则为空`));
-            return
-        };
-        params["ConfigId"] = ERConfigID;
-        let order = env == 'dev' ? 'DeleteSpecificStagingConfig' : 'DeleteSpecificConfig';
-        let deleteEnv = env == 'dev' ? 'DeletedStaging' : 'DeletedProd';
-        requestClient(order, params, requestOption, deleteEnv, env);
-    } else if (status == 'rollback') {
-        if (ERConfigID == null) {
-            let text = env == 'dev' ? '模拟环境' : '生产环境';
-            console.log(chalk.greenBright(`[EN] ${text} ER规则为空`));
-            return
-        };
-        params["FunctionName"] = 'edge_function';
-        requestClient('RollbackStagingConfig', params, requestOption, 'Rollbacked', env)
     }
-    return { DomainConfig,AllDomianConfig, ERConfigID, ESCount }
+    return { DomainConfig, AllDomianConfig, index, ERConfigID, ESCount }
 }
 
-// Build  Success or Delete or Rollback
-function requestClient(url, params, requestOption, status, env) {
-    let { client } = getConfigAndClient();
-    client.request(url, params, requestOption).then(async (result) => {
-        if (result.RequestId) {
-            await clientCustom('show', env);
-            if (status == 'Build') {
-                let configPath = path.resolve('config.js');
-                await shell.sed('-i', /buildTime:.*/, `buildTime:${parseInt(Date.now() / 1000)}`, configPath);
-                console.log(chalk.greenBright(`[EN] Configuration succeeded in staging environment.`));
-                console.log(chalk.greenBright(`[ZN] 模拟环境ER规则配置成功。`));
-            } else if (status == 'DeletedStaging') {
-                console.log(chalk.greenBright(`[EN] Configuration Deleted in staging environment.`));
-                console.log(chalk.greenBright(`[ZN] 模拟环境ER规则删除成功。`));
-            } else if (status == 'Rollbacked') {
-                console.log(chalk.greenBright(`[EN] Configuration roll-back in staging environment.`));
-                console.log(chalk.greenBright(`[ZN] 模拟环境ER规则回滚成功。`));
-            } else if (status == 'DeletedProd') {
-                console.log(chalk.greenBright(`[EN] Configuration Deleted in production environment.`));
-                console.log(chalk.greenBright(`[ZN] 生产环境ER规则删除成功。`));
+function DeleteConfigs(env) {
+    let environment = env == 'dev' ? 'DeleteSpecificStagingConfig' : 'DeleteSpecificConfig';
+    let ZN = env == 'dev' ? '模拟环境' : '生产环境'
+    let EN = env == 'dev' ? 'staging' : 'production'
+    inquirer.prompt([{
+        type: 'confirm',
+        name: 'delete',
+        message: chalk.greenBright(`[EN] Delete ER config in ${EN} environment? \n  [ZN] 确认删除${ZN}中的 ER 配置？`),
+    }]).then(async (answer) => {
+        if (answer['delete']) {
+            let { ERConfigID } = await getStagingOrProductConfig(env);
+            if (ERConfigID == null) {
+                console.log(' ')
+                console.log(chalk.greenBright(`[EN] No configs in ${EN} environment`));
+                console.log(chalk.greenBright(`[ZN] ${ZN} ER 规则为空`));
+                return
+            };
+            let { client, params, requestOption } = getConfigAndClient();
+            params["ConfigId"] = ERConfigID;
+            let result = await client.request(environment, params, requestOption).catch(e => {
+                if(e.code == 'ConfigurationConflicts'){
+                    console.log(' ');
+                    console.log(chalk.redBright(`[EN] ${e.data.Message}`));
+                    console.log(chalk.redBright(`[ZN] 模拟环境有一个有效的配置，不能修改生产环境的配置.`));
+
+                    console.log(chalk.yellowBright(`[EN] 如需删除生产环境的ER 规则,请回滚模拟环境，在执行此操作`))
+                }else{
+                    console.log("DeleteConfigs -> e", e)
+                }
+            });
+            if (result) {
+                let { AllDomianConfig, ESCount } = await getStagingOrProductConfig(env);
+                if (ESCount > 0) {
+                    showRules(AllDomianConfig, env);
+                    console.log(chalk.greenBright(`[EN] ER config was removed success, ${AllDomianConfig.length} ES config left in staging environment`));
+                    console.log(chalk.greenBright(`[ZN] ER配置删除成功。模拟环境剩余 ${AllDomianConfig.length} 条ES规则`));
+                } else {
+                    console.log(chalk.greenBright(`[EN] Deleted success.`));
+                    console.log(chalk.greenBright(`[ZN] 删除成功`));
+                }
             }
+        } else {
+            console.log(chalk.greenBright(`[EN] undelete`));
+            console.log(chalk.greenBright(`[ZN] 取消删除`));
         }
-    }, (ex) => {
-        console.log(ex);
-        status == "Build" && console.log(chalk.red("Build failed, check exists or connect us..."));
-    });
+    })
 }
 
 
-module.exports = { clientCustom, getConfigAndClient, requestClient,show }
+async function RollbackConfigs(env) {
+    let { client, params, requestOption } = getConfigAndClient();
+    let { AllDomianConfig } = await getStagingOrProductConfig(env);
+    showRules(AllDomianConfig, env);
+    if (AllDomianConfig.length <= 0) {
+       return; 
+    }
+    inquirer.prompt([{
+        type: 'confirm',
+        name: 'rollback',
+        message: chalk.greenBright(`[EN] The roll back operation overrides the configs of the staging environment with the production environment. Please comfirm? \n  [CN] 回滚会用生产环境的配置覆盖目前模拟环境的配置，确认回滚？`)
+    }]).then(async (answer) => {
+        if (answer['rollback']) {
+            params["FunctionName"] = 'edge_function';
+            let result = await client.request('RollbackStagingConfig', params, requestOption).catch(e => {
+                console.log("RollbackConfigs -> e", e)
+            });
+            if (result) {
+                console.log(' ')
+                console.log(chalk.greenBright('[EN] Roll back success. '));
+                console.log(chalk.greenBright('[ZN] 回滚成功'));
+            }
+        } else {
+            console.log(' ')
+            console.log(chalk.greenBright('[EN] Cancel the rollback'));
+            console.log(chalk.greenBright('[ZN] 取消回滚'));
+        }
+    })
+}
+
+
+module.exports = { getStagingOrProductConfig, getConfigAndClient, showRules, DeleteConfigs, RollbackConfigs }
 
 

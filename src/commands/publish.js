@@ -3,81 +3,58 @@ const path = require('path');
 const chalk = require('chalk');
 
 const inquirer = require('inquirer');
-const { getConfigAndClient, clientCustom, show } = require('./public')
+const { getConfigAndClient, getStagingOrProductConfig, showRules, DeleteConfigs } = require('./public')
 
 const shell = require('shelljs');
 const child_process = require('child_process');
 var PublishError = null;
-/**
- *   Submit questions and answers
- */
 
 /**
 *  The Main Function
 * @param {Object} program 
 */
-
 async function publish(program) {
     if (program.show == true) {
-        clientCustom('show', 'prod');
+        let { AllDomianConfig } = await getStagingOrProductConfig('prod');
+        showRules(AllDomianConfig, 'prod');
     } else if (program.delete == true) {
-        clientCustom('delete', 'prod');
+        DeleteConfigs('prod');
     } else {
         // 第一步查询模拟环境的规则
-        // return { DomainConfig, ERConfigID, ESCount }
-        let { AllDomianConfig, ESCount } = await clientCustom(null, 'dev');
+        let { AllDomianConfig, ESCount } = await getStagingOrProductConfig('dev');
         if (ESCount > 0) {
-            show(AllDomianConfig,'dev');
+            showRules(AllDomianConfig, 'dev');
             getConfirm();
         } else {
             getConfirm();
         }
-       
     }
 }
 
 // 
 function getConfirm() {
+    let { config } = getConfigAndClient()
     inquirer.prompt([{
         type: 'confirm',
         name: 'test-publish',
         message: chalk.greenBright(`[EN] No test, no publish,The above configs are fully tested in staging environment? \n  [ZN] 无测试，不发布，您在模拟环境充分测试了吗？`),
     }]).then((answer) => {
         if (answer['test-publish']) {
-            console.log(chalk.yellowBright(`On Publishing:发布中... \n`))
+            console.log(" ");
             TerminalProgressPublish();
         } else {
             console.log(' ');
-            console.log(`please run this order in terminal:\n`);
+            console.log(chalk.redBright(`[EN] Please test fully in staging environment，for example:`));
+            console.log(chalk.redBright(`[ZN] 请充分测试, 下面是测试路径示例:`));
+            console.log(' ');
             console.log(chalk.yellow(`curl -v 'http://${config.domain}' -x 42.123.119.50:80`));
         }
     })
 }
 
-/**
- * Gets the status of the commit
- *  
- */
-
-async function GetPublishFlag() {
-    let flag = null;
-    let { params, requestOption, client } = getConfigAndClient();
-    params["FunctionName"] = "edge_function";
-    params['DomainNames'] = params['DomainName'];
-    let result = await client.request('PublishStagingConfigToProduction', params, requestOption).catch((ex) => {
-        flag = false
-        PublishError = ex;
-    });
-    if (result !== undefined && result.hasOwnProperty('RequestId')) {
-        flag = true
-    }
-    return flag;
-}
-
 function TerminalProgressPublish() {
     let { config, params, client, requestOption } = getConfigAndClient();
     if (config.buildTime !== null) {
-    // if (true) {
         /**
          * Get buildTime and publishTime 
          */
@@ -98,22 +75,17 @@ function TerminalProgressPublish() {
                 console.log(chalk.greenBright(`[EN] Configuration successed in production environment.`));
                 console.log(chalk.greenBright(`[ZN] 生产环境规则配置成功.`));
                 await shell.sed('-i', /buildTime:.*/, `buildTime:null`, path.resolve('config.js'));
-                
+
                 // 生产环境拷贝规则到模拟环境部分
-                let { DomainConfig } = await clientCustom('show', 'prod');
+                let { DomainConfig } = await getStagingOrProductConfig('prod');
                 params['Functions'] = JSON.stringify(DomainConfig);
                 requestOption.method = 'POST';
-                let result = await client.request('SetCdnDomainStagingConfig', params, requestOption).catch((e) => {
-                    console.log("TerminalProgressPublish -> e", e)
-                    
-                });
-                if (result.RequestId) {
-                    console.log('拷贝规则成功');
-                }
-                // -------
+                await client.request('SetCdnDomainStagingConfig', params, requestOption);
+                // ------- 
             } else {
                 if (PublishError !== null && PublishError.code == 'StagingConfig.Failed') {
-                    console.log(chalk.red('Rules in staging are being configured, please try again later.(规则正在配置，请稍后再发布)'));
+                    console.log(chalk.redBright('[EN] Config is building, you can publish after build success.'));
+                    console.log(chalk.redBright('[ZN] 规则正在配置，请稍后再发布生产环境'));
                 } else {
                     console.log(PublishError);
                 }
@@ -138,9 +110,31 @@ function TerminalProgressPublish() {
         }
         setTimeout(setFunction, thirtyPercentTime * countDownTime, 3);
     } else {
-        console.log(chalk.red('Publish need build first or wait build Succeed ...'));
+        console.log(" ")
+        console.log(chalk.greenBright('[EN] Please build and test in staging environment before publish.'));
+        console.log(chalk.greenBright('[ZN] 请先build并在模拟环境中测试，再发布至生产环境;'));
     }
 
+}
+
+
+/**
+ * Gets the status of the commit
+ *  
+ */
+async function GetPublishFlag() {
+    let flag = null;
+    let { params, requestOption, client } = getConfigAndClient();
+    params["FunctionName"] = "edge_function";
+    params['DomainNames'] = params['DomainName'];
+    let result = await client.request('PublishStagingConfigToProduction', params, requestOption).catch((ex) => {
+        flag = false
+        PublishError = ex;
+    });
+    if (result !== undefined && result.hasOwnProperty('RequestId')) {
+        flag = true
+    }
+    return flag;
 }
 
 module.exports = publish

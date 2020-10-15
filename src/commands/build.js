@@ -6,8 +6,8 @@ const rp = require('request-promise');
 const edgeCDN = require('../edge/edgecdn.js');
 const base64 = require('js-base64').Base64;
 const assert = require('assert');
-
-const { getConfigAndClient, clientCustom, requestClient } = require('./public');
+const shell = require('shelljs');
+const { getConfigAndClient, getStagingOrProductConfig, showRules, DeleteConfigs, RollbackConfigs} = require('./public');
 
 
 // get build rules 
@@ -17,15 +17,15 @@ function buildRules(config, edgejsCode, ossjsCode) {
     // options: jsConfig + jsSession
     let options = "";
 
-     // jsOptions
-     let jsOptions = config.jsOptions;
-     let opts = [];
-     for (var k in jsOptions) {
-         opts.push(k + ":" + jsOptions[k]);
-     }
-     if (opts && opts.length > 0) {
-         options = "jsconfig=" + opts.join(",");
-     }
+    // jsOptions
+    let jsOptions = config.jsOptions;
+    let opts = [];
+    for (var k in jsOptions) {
+        opts.push(k + ":" + jsOptions[k]);
+    }
+    if (opts && opts.length > 0) {
+        options = "jsconfig=" + opts.join(",");
+    }
     // jsSession
     let jsSession = config.jsSession;
     if (jsSession && jsSession.length > 0) {
@@ -78,8 +78,8 @@ function buildRules(config, edgejsCode, ossjsCode) {
 async function DomainStagingConfig(edgejsCode, ossjsCode) {
     console.log(chalk.greenBright(`[EN] edge.js is configuring in staging environemt....`))
     console.log(chalk.greenBright(`[ZN] ER代码edge.js在模拟环境配置中...`))
-    let { config, params, requestOption } = getConfigAndClient();
-    let { DomainConfig, ERConfigID } = await clientCustom('build', 'dev');
+    let { config, params, client, requestOption } = getConfigAndClient();
+    let { DomainConfig, ERConfigID } = await getStagingOrProductConfig('dev');
     let params_result = buildRules(config, edgejsCode, ossjsCode);
     // 设置configId
     if (ERConfigID != null) {
@@ -88,18 +88,30 @@ async function DomainStagingConfig(edgejsCode, ossjsCode) {
     params['Functions'] = null;
     params['Functions'] = JSON.stringify([...[params_result], ...DomainConfig]);
     requestOption.method = 'POST';
-    requestClient('SetCdnDomainStagingConfig', params, requestOption, 'Build','dev');
+    let result = await client.request('SetCdnDomainStagingConfig', params, requestOption).catch(e => {
+        console.log("DomainStagingConfig -> e", e)
+    })
+    if (result) {
+        let configPath = path.resolve('config.js');
+        await shell.sed('-i', /buildTime:.*/, `buildTime:${parseInt(Date.now() / 1000)}`, configPath);
+        let { AllDomianConfig } = await getStagingOrProductConfig('dev');
+        showRules(AllDomianConfig, 'dev');
+        console.log(' ');
+        console.log(chalk.greenBright(`[EN] Configuration succeeded in staging environment.`));
+        console.log(chalk.greenBright(`[ZN] 模拟环境ER规则配置成功。`));
+    }
 }
 
 // program build   
 async function build(program) {
     let { config } = getConfigAndClient();
     if (program.show == true) {
-        clientCustom('show', 'dev');
+        let { AllDomianConfig } = await getStagingOrProductConfig('dev');
+        showRules(AllDomianConfig, 'dev');
     } else if (program.delete == true) {
-        clientCustom('delete', 'dev');
+        DeleteConfigs('dev');
     } else if (program.rollback == true) {
-        clientCustom('rollback', 'dev');
+        RollbackConfigs('dev');
     } else {
         let edgejsFile = path.resolve(config.jsConfig.path);
         let stats = fs.statSync(edgejsFile);
@@ -131,12 +143,14 @@ async function build(program) {
                 body: edgejsCode,
                 resolveWithFullResponse: true,
             };
+
             rp(rpOptions).then(function (response) {
                 if (response.statusCode == 200) {
                     ossjsCode = ossObjectName;
                     DomainStagingConfig(edgejsCode, ossjsCode)
                 } else {
                     console.log(chalk.redBright(`[EN] upload edgejs failed with response ${response.statusCode}`));
+                    
                     return;
                 }
             }, function (resp) {
@@ -150,6 +164,7 @@ async function build(program) {
         }
     }
 }
+
 
 module.exports = { build, buildRules }
 
