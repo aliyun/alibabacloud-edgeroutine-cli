@@ -61,7 +61,7 @@ function buildRules(config, edgejsCode, ossjsCode) {
             "argValue": options
         }, {
             "argName": "pri",
-            "argValue": jsConfig.pri
+            "argValue": `${jsConfig.pri}`
         }, {
             "argName": "pos",
             "argValue": jsConfig.pos
@@ -77,7 +77,7 @@ function buildRules(config, edgejsCode, ossjsCode) {
 
 async function DomainStagingConfig(edgejsCode, ossjsCode) {
     console.log(chalk.greenBright(`[EN] edge.js is configuring in staging environemt....`))
-    console.log(chalk.greenBright(`[ZN] ER代码edge.js在模拟环境配置中...`))
+    console.log(chalk.greenBright(`[CN] ER代码edge.js在模拟环境配置中...`))
     let { config, params, client, requestOption } = getConfigAndClient();
     let { DomainConfig, ERConfigID } = await getStagingOrProductConfig('dev');
     let params_result = buildRules(config, edgejsCode, ossjsCode);
@@ -95,10 +95,10 @@ async function DomainStagingConfig(edgejsCode, ossjsCode) {
         let configPath = path.resolve('config.js');
         await shell.sed('-i', /buildTime:.*/, `buildTime:${parseInt(Date.now() / 1000)}`, configPath);
         let { AllDomianConfig } = await getStagingOrProductConfig('dev');
-        showRules(AllDomianConfig, 'dev');
+        showRules(AllDomianConfig, 'dev',true);
         console.log(' ');
         console.log(chalk.greenBright(`[EN] Configuration succeeded in staging environment.`));
-        console.log(chalk.greenBright(`[ZN] 模拟环境ER规则配置成功。`));
+        console.log(chalk.greenBright(`[CN] 模拟环境ER规则配置成功。`));
     }
 }
 
@@ -107,7 +107,7 @@ async function build(program) {
     let { config } = getConfigAndClient();
     if (program.show == true) {
         let { AllDomianConfig } = await getStagingOrProductConfig('dev');
-        showRules(AllDomianConfig, 'dev');
+        showRules(AllDomianConfig, 'dev',true);
     } else if (program.delete == true) {
         DeleteConfigs('dev');
     } else if (program.rollback == true) {
@@ -150,13 +150,17 @@ async function build(program) {
                     DomainStagingConfig(edgejsCode, ossjsCode)
                 } else {
                     console.log(chalk.redBright(`[EN] upload edgejs failed with response ${response.statusCode}`));
-                    
                     return;
                 }
             }, function (resp) {
-                let headers = resp.response.headers;
-                let statusCode = resp.response.statusCode;
-                console.log(chalk.redBright(`[EN] upload edgejs failed with statusCode: ${statusCode},via:${headers['via']},eagleid:${headers['eagleid']}`));
+                if(resp.response){
+                    let headers = resp.response.headers;
+                    let statusCode = resp.response.statusCode;
+                    console.log(chalk.redBright(`[EN] upload edgejs failed with statusCode: ${statusCode},via:${headers['via']},eagleid:${headers['eagleid']}`));
+                    console.log(chalk.redBright(`[CN] 代码提交失败，statusCode: ${statusCode},via:${headers['via']},eagleid:${headers['eagleid']}，请稍后重试或提交工单反馈。`))
+                }else{
+                    console.log(resp.message);
+                }
                 return;
             })
         } else {

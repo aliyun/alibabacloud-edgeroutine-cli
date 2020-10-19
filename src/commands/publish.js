@@ -1,12 +1,9 @@
-const fs = require('fs');
 const path = require('path');
 const chalk = require('chalk');
-
 const inquirer = require('inquirer');
-const { getConfigAndClient, getStagingOrProductConfig, showRules, DeleteConfigs } = require('./public')
-
 const shell = require('shelljs');
 const child_process = require('child_process');
+const { getConfigAndClient, getStagingOrProductConfig, showRules, DeleteConfigs } = require('./public')
 var PublishError = null;
 
 /**
@@ -16,14 +13,14 @@ var PublishError = null;
 async function publish(program) {
     if (program.show == true) {
         let { AllDomianConfig } = await getStagingOrProductConfig('prod');
-        showRules(AllDomianConfig, 'prod');
+        showRules(AllDomianConfig, 'prod',true);
     } else if (program.delete == true) {
         DeleteConfigs('prod');
     } else {
         // 第一步查询模拟环境的规则
         let { AllDomianConfig, ESCount } = await getStagingOrProductConfig('dev');
         if (ESCount > 0) {
-            showRules(AllDomianConfig, 'dev');
+            showRules(AllDomianConfig, 'dev',true);
             getConfirm();
         } else {
             getConfirm();
@@ -37,7 +34,7 @@ function getConfirm() {
     inquirer.prompt([{
         type: 'confirm',
         name: 'test-publish',
-        message: chalk.greenBright(`[EN] No test, no publish,The above configs are fully tested in staging environment? \n  [ZN] 无测试，不发布，您在模拟环境充分测试了吗？`),
+        message: chalk.greenBright(`[EN] Please make sure the configs have been tested fully in staging environment?\n  [CN] 您确认在模拟环境充分测试了吗？`),
     }]).then((answer) => {
         if (answer['test-publish']) {
             console.log(" ");
@@ -45,7 +42,7 @@ function getConfirm() {
         } else {
             console.log(' ');
             console.log(chalk.redBright(`[EN] Please test fully in staging environment，for example:`));
-            console.log(chalk.redBright(`[ZN] 请充分测试, 下面是测试路径示例:`));
+            console.log(chalk.redBright(`[CN] 请充分测试, 下面是测试路径示例:`));
             console.log(' ');
             console.log(chalk.yellow(`curl -v 'http://${config.domain}' -x 42.123.119.50:80`));
         }
@@ -73,7 +70,7 @@ function TerminalProgressPublish() {
         subprocess.on('close', async (value) => {
             if (value) {
                 console.log(chalk.greenBright(`[EN] Configuration successed in production environment.`));
-                console.log(chalk.greenBright(`[ZN] 生产环境规则配置成功.`));
+                console.log(chalk.greenBright(`[CN] 生产环境规则配置成功.`));
                 await shell.sed('-i', /buildTime:.*/, `buildTime:null`, path.resolve('config.js'));
 
                 // 生产环境拷贝规则到模拟环境部分
@@ -85,7 +82,7 @@ function TerminalProgressPublish() {
             } else {
                 if (PublishError !== null && PublishError.code == 'StagingConfig.Failed') {
                     console.log(chalk.redBright('[EN] Config is building, you can publish after build success.'));
-                    console.log(chalk.redBright('[ZN] 规则正在配置，请稍后再发布生产环境'));
+                    console.log(chalk.redBright('[CN] 规则正在配置，请稍后再发布生产环境'));
                 } else {
                     console.log(PublishError);
                 }
@@ -112,7 +109,7 @@ function TerminalProgressPublish() {
     } else {
         console.log(" ")
         console.log(chalk.greenBright('[EN] Please build and test in staging environment before publish.'));
-        console.log(chalk.greenBright('[ZN] 请先build并在模拟环境中测试，再发布至生产环境;'));
+        console.log(chalk.greenBright('[CN] 请先build并在模拟环境中测试，再发布至生产环境。'));
     }
 
 }

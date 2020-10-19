@@ -2,7 +2,7 @@ var config = {
     // @alicloud api version
     apiVersion: '2018-05-10',
 
-    // Aliyun CDN OpenAPI Endpoint
+    // CDN OpenAPI Endpoint
     endpoint: 'https://cdn.aliyuncs.com',
 
     // Your CDN Domain
@@ -12,18 +12,21 @@ var config = {
     jsConfig: {
         "path": "edge.js", // path: [edge.js/path]  Edge.js will be delivered to all alibaba global edge nodes, you could replace it.
         "pos": "head", // pos: [head/foot] JavaScript code is executed before/after CDN business
-        "pri": "0",   // pri : [0 high - 999 low]  The priority of head execution/tail execution is independent of each other
+        "pri": "0",   // The priority of head execution/tail execution is independent of each other  [0 high - 999 low] (The type must be a String)
         "jsmode": "redirect", // jsmode: [redirect/bypass]  Redirect/bypass requests to JavaScript code execution
         "jsttl": 1800 // jsttl: [>1800] JavaScript code timeout is default 1800 seconds, i.e.after 30 minutes your global variable will be emptied  (recommended for simple cache only)
     },
 
-    jsOptions:{
+    // Edge jsOptions Optional
+    // If there is any other configuration, you can apply for work order
+    // jsoptions: [key: value]
+    "jsOptions": {
         "gzip_enable": "on", //Gzip compression on by default, automatically recognized when responding Accept-Encoding/Content-Encoding
-        "upstream_read_timeout": "5000", // Read timeout between the CDN load and EdgeRoutine, 2 seconds by default
-        "upstream_write_timeout": "5000",
+        "upstream_read_timeout": "2000", // Read timeout between the CDN load and EdgeRoutine, 2 seconds by default
+        "upstream_write_timeout": "2000",// Write timeout between the CDN load and EdgeRoutine, 2 seconds by default
     },
 
-    // Edge jsSession Optional 
+    // Edge jsSession Optional
     // If there is any other configuration, you can apply for work order
     // jssession: [key1, key2, key3]
     "jsSession": [
@@ -39,9 +42,8 @@ var config = {
     ],
 
     // Alicloud Config
-    accessKeyID: "", //  Your aliyun account AccesskeyId
-    accessKeySecret: "", // Your aliyun account AccessKeySecret
-
+    accessKeyID: "", //Your aliYun account AccesskeyId
+    accessKeySecret: "", // Your aliYun account AccessKeySecret
     // The build sucess current timestamp
     buildTime: null,
 };
