@@ -13,14 +13,14 @@ var PublishError = null;
 async function publish(program) {
     if (program.show == true) {
         let { AllDomianConfig } = await getStagingOrProductConfig('prod');
-        showRules(AllDomianConfig, 'prod',true);
+        showRules(AllDomianConfig, 'prod', true);
     } else if (program.delete == true) {
         DeleteConfigs('prod');
     } else {
         // 第一步查询模拟环境的规则
         let { AllDomianConfig, ESCount } = await getStagingOrProductConfig('dev');
         if (ESCount > 0) {
-            showRules(AllDomianConfig, 'dev',true);
+            showRules(AllDomianConfig, 'dev', true);
             getConfirm();
         } else {
             getConfirm();

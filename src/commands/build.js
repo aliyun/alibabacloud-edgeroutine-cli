@@ -7,7 +7,7 @@ const edgeCDN = require('../edge/edgecdn.js');
 const base64 = require('js-base64').Base64;
 const assert = require('assert');
 const shell = require('shelljs');
-const { getConfigAndClient, getStagingOrProductConfig, showRules, DeleteConfigs, RollbackConfigs} = require('./public');
+const { getConfigAndClient, getStagingOrProductConfig, showRules, DeleteConfigs, RollbackConfigs } = require('./public');
 
 
 // get build rules 
@@ -95,7 +95,7 @@ async function DomainStagingConfig(edgejsCode, ossjsCode) {
         let configPath = path.resolve('config.js');
         await shell.sed('-i', /buildTime:.*/, `buildTime:${parseInt(Date.now() / 1000)}`, configPath);
         let { AllDomianConfig } = await getStagingOrProductConfig('dev');
-        showRules(AllDomianConfig, 'dev',true);
+        showRules(AllDomianConfig, 'dev', true);
         console.log(' ');
         console.log(chalk.greenBright(`[EN] Configuration succeeded in staging environment.`));
         console.log(chalk.greenBright(`[CN] 模拟环境ER规则配置成功。`));
@@ -107,7 +107,7 @@ async function build(program) {
     let { config } = getConfigAndClient();
     if (program.show == true) {
         let { AllDomianConfig } = await getStagingOrProductConfig('dev');
-        showRules(AllDomianConfig, 'dev',true);
+        showRules(AllDomianConfig, 'dev', true);
     } else if (program.delete == true) {
         DeleteConfigs('dev');
     } else if (program.rollback == true) {
@@ -153,12 +153,12 @@ async function build(program) {
                     return;
                 }
             }, function (resp) {
-                if(resp.response){
+                if (resp.response) {
                     let headers = resp.response.headers;
                     let statusCode = resp.response.statusCode;
                     console.log(chalk.redBright(`[EN] upload edgejs failed with statusCode: ${statusCode},via:${headers['via']},eagleid:${headers['eagleid']}`));
                     console.log(chalk.redBright(`[CN] 代码提交失败，statusCode: ${statusCode},via:${headers['via']},eagleid:${headers['eagleid']}，请稍后重试或提交工单反馈。`))
-                }else{
+                } else {
                     console.log(resp.message);
                 }
                 return;

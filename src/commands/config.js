@@ -10,7 +10,7 @@ async function setConfigJS(configPath) {
         type: 'input',
         name: 'set-config-domain',
         // message: 'set your domain: ',
-        message:chalk.greenBright('Enter your domain (设置您的域名):'),
+        message: chalk.greenBright('Enter your domain (设置您的域名):'),
         validate: function (input) {
             var regUrl = new RegExp();
             regUrl.compile("^(?=^.{3,255}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+$");
@@ -24,7 +24,7 @@ async function setConfigJS(configPath) {
         type: 'input',
         name: 'set-config-access-id',
         // message: 'set your accessID: ',
-        message:chalk.greenBright('Enter your accessID (设置您的AK): '),
+        message: chalk.greenBright('Enter your accessID (设置您的AK): '),
         validate: function (input) {
             if (!input) {
                 return 'Try again: must set accessID!';
@@ -36,7 +36,7 @@ async function setConfigJS(configPath) {
         type: 'input',
         name: 'set-config-access-secret',
         // message: 'set your accessSecret: ',
-        message:chalk.greenBright('Enter your accessSecret (设置您的SK): '),
+        message: chalk.greenBright('Enter your accessSecret (设置您的SK): '),
         validate: function (input) {
             if (!input) {
                 return 'Try again: must set accessSecret!';
@@ -70,14 +70,14 @@ function initConfigJS() {
     });
 }
 
- function config() {
+function config() {
     // 配置文件如果存在则提示是否覆盖
     if (fs.existsSync(path.resolve('config.js'))) {
         // 连续提问
         inquirer.prompt([{
             name: 'init-confirm',
             type: 'confirm',
-            message:chalk.greenBright('[EN] config.js is already existed, are you sure to overwrite? \n  [CN] config.js 文件已经存在,您确定要覆盖吗？'),
+            message: chalk.greenBright('[EN] config.js is already existed, are you sure to overwrite? \n  [CN] config.js 文件已经存在,您确定要覆盖吗？'),
             validate: function (input) {
                 if (input.lowerCase !== 'y' && input.lowerCase !== 'n') {
                     return 'Please input y/n !'
@@ -86,13 +86,13 @@ function initConfigJS() {
                 }
             }
         }]).then(answers => {
-                // y -> 覆盖, n -> 退出
-                if (answers['init-confirm']) {
-                    initConfigJS();
-                } else {
-                    process.exit(0);
-                }
-            })
+            // y -> 覆盖, n -> 退出
+            if (answers['init-confirm']) {
+                initConfigJS();
+            } else {
+                process.exit(0);
+            }
+        })
             .catch(err => {
                 console.log(chalk.red(err));
             })
