@@ -9,12 +9,13 @@ async function setConfigJS(configPath) {
     const prompts = [{
         type: 'input',
         name: 'set-config-domain',
-        message: 'set your domain: ',
-        validate: function(input) {
+        // message: 'set your domain: ',
+        message:chalk.greenBright('Enter your domain (设置您的域名):'),
+        validate: function (input) {
             var regUrl = new RegExp();
             regUrl.compile("^(?=^.{3,255}$)[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})+$");
             if (!regUrl.test(input)) {
-                return 'Try again: must be domain format!';
+                return 'Try again: must be domain format! (在试一次,必须是域名)';
             }
             shell.sed('-i', 'domain: ""', `domain: '${input}'`, configPath);
             return true;
@@ -22,8 +23,9 @@ async function setConfigJS(configPath) {
     }, {
         type: 'input',
         name: 'set-config-access-id',
-        message: 'set your accessID: ',
-        validate: function(input) {
+        // message: 'set your accessID: ',
+        message:chalk.greenBright('Enter your accessID (设置您的AK): '),
+        validate: function (input) {
             if (!input) {
                 return 'Try again: must set accessID!';
             }
@@ -33,8 +35,9 @@ async function setConfigJS(configPath) {
     }, {
         type: 'input',
         name: 'set-config-access-secret',
-        message: 'set your accessSecret: ',
-        validate: function(input) {
+        // message: 'set your accessSecret: ',
+        message:chalk.greenBright('Enter your accessSecret (设置您的SK): '),
+        validate: function (input) {
             if (!input) {
                 return 'Try again: must set accessSecret!';
             }
@@ -47,7 +50,7 @@ async function setConfigJS(configPath) {
 }
 
 function initConfigJS() {
-    figlet('edgeroutine-cli', async function(err, data) {
+    figlet('edgeroutine-cli', async function (err, data) {
         if (err) {
             console.log(chalk.red('Some thing about figlet is wrong!'));
         }
@@ -56,30 +59,33 @@ function initConfigJS() {
         let configStr = fs.readFileSync(templatePath, 'utf8');
         let targetFilePath = path.resolve('config.js');
         fs.writeFileSync(targetFilePath, configStr, 'utf8');
-        console.log(chalk.red('\n Created default config.js, waiting init... \n'));
+        console.log('');
+        console.log(chalk.greenBright("[EN] config.js Initializing..."));
+        console.log(chalk.greenBright("[CN] 代码文件 config.js初始化中...\n"));
         await setConfigJS(targetFilePath);
-        console.log(chalk.green('\n Initialize config.js success... \n'));
+        console.log('');
+        console.log(chalk.greenBright('[EN] config.js Initialization success.'));
+        console.log(chalk.greenBright('[CN] 配置文件 config.js 初始化完毕。 \n'));
         process.exit(0);
     });
 }
 
-module.exports = function() {
+ function config() {
     // 配置文件如果存在则提示是否覆盖
     if (fs.existsSync(path.resolve('config.js'))) {
         // 连续提问
         inquirer.prompt([{
-                name: 'init-confirm',
-                type: 'confirm',
-                message: `config.js is already existed, are you sure to overwrite?`,
-                validate: function(input) {
-                    if (input.lowerCase !== 'y' && input.lowerCase !== 'n') {
-                        return 'Please input y/n !'
-                    } else {
-                        return true;
-                    }
+            name: 'init-confirm',
+            type: 'confirm',
+            message:chalk.greenBright('[EN] config.js is already existed, are you sure to overwrite? \n  [CN] config.js 文件已经存在,您确定要覆盖吗？'),
+            validate: function (input) {
+                if (input.lowerCase !== 'y' && input.lowerCase !== 'n') {
+                    return 'Please input y/n !'
+                } else {
+                    return true;
                 }
-            }])
-            .then(answers => {
+            }
+        }]).then(answers => {
                 // y -> 覆盖, n -> 退出
                 if (answers['init-confirm']) {
                     initConfigJS();
@@ -94,3 +100,5 @@ module.exports = function() {
         initConfigJS();
     }
 };
+
+module.exports = config;
