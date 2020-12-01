@@ -1,6 +1,6 @@
 {
   "name": "@alicloud/edgeroutine-cli",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "@alicloud/edgeroutine-cli",
   "bin": {
     "edgeroutine-cli": "./bin/index.js"
