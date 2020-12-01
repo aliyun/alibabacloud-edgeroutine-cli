@@ -55,9 +55,9 @@ function TerminalProgressPublish() {
         /**
          * Get buildTime and publishTime 
          */
-        let buildTime = config.buildTime + 300 || 300;
+        let buildTime = config.buildTime + 20 || 20;
         let publishTime = parseInt(Date.now() / 1000);
-        let leadTime = buildTime - publishTime < 0 ? 180 : buildTime - publishTime;
+        let leadTime = buildTime - publishTime > 0 ? 20 : 1;
         let thirtyPercentTime = leadTime * 0.3;
         let countDownTime = 1000;
 
@@ -128,7 +128,7 @@ async function GetPublishFlag() {
         flag = false
         PublishError = ex;
     });
-    if (result !== undefined && result.hasOwnProperty('RequestId')) {
+    if (result instanceof Object && Reflect.has(result,"RequestId") ) {
         flag = true
     }
     return flag;
