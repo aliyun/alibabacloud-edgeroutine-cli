@@ -128,6 +128,9 @@ async function GetPublishFlag() {
         flag = false
         PublishError = ex;
     });
+    if(result != undefined){
+        result = JSON.parse(JSON.stringify(result))
+    }
     if (result instanceof Object && Reflect.has(result,"RequestId") ) {
         flag = true
     }
