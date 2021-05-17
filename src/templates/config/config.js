@@ -22,8 +22,8 @@ var config = {
     // jsoptions: [key: value]
     "jsOptions": {
         "gzip_enable": "on", //Gzip compression on by default, automatically recognized when responding Accept-Encoding/Content-Encoding
-        "upstream_read_timeout": "2000", // Read timeout between the CDN load and EdgeRoutine, 2 seconds by default
-        "upstream_write_timeout": "2000",// Write timeout between the CDN load and EdgeRoutine, 2 seconds by default
+        "upstream_read_timeout": "5000", // Read timeout between the CDN load and EdgeRoutine, 5 seconds by default
+        "upstream_write_timeout": "5000",// Write timeout between the CDN load and EdgeRoutine, 5 seconds by default
     },
 
     // Edge jsSession Optional
