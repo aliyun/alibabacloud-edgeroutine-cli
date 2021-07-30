@@ -3,7 +3,8 @@
   "version": "2.0.4",
   "description": "@alicloud/edgeroutine-cli",
   "bin": {
-    "edgeroutine-cli": "./bin/index.js"
+    "edgeroutine-cli": "./bin/index.js",
+    "er": "./bin/index.js"
   },
   "dependencies": {
     "@alicloud/pop-core": "^1.7.9",
@@ -18,6 +19,13 @@
     "iconv-lite": "^0.5.1",
     "inquirer": "^7.0.4",
     "js-base64": "^2.5.2",
+    "koa": "^2.11.0",
+    "koa-ejs": "^4.3.0",
+    "koa-router": "^8.0.8",
+    "koa-send": "^5.0.0",
+    "koa-static": "^5.0.0",
+    "koa-views": "^6.2.1",
+    "koa2-cors": "^2.0.6",
     "minimist": "^1.2.5",
     "mocha": "^7.0.1",
     "open": "^7.0.2",

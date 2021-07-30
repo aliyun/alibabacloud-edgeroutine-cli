@@ -6,7 +6,7 @@ const config = require('../src/commands/config');
 const init = require('../src/commands/init');
 const publish = require('../src/commands/publish');
 const dbg = require("../src/debugger/lib.js");
-
+const app=require("../src/webview/app");
 // Modify if we depoly our debugger into different places
 const debuggerIp = "debugger.ialicdn.com";
 let json = fs.readFileSync(path.join(`${path.dirname(__dirname)}/package.json`),'utf-8');
@@ -49,6 +49,10 @@ program
     .option('-d, --delete', 'delete published code')
     .description('Publish code to remote environment')
     .action(publish)
+
+program
+    .command('webview')
+    .action(app)
 
 program
     .command('debugger [url] [id] [path] [origin]')
