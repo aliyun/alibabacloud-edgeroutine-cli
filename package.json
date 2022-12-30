@@ -27,7 +27,7 @@
     "koa-views": "^6.2.1",
     "koa2-cors": "^2.0.6",
     "minimist": "^1.2.5",
-    "mocha": "^7.0.1",
+    "mocha": "^10.2.0",
     "open": "^7.0.2",
     "parse5": "^5.1.1",
     "parse5-htmlparser2-tree-adapter": "^5.1.1",
